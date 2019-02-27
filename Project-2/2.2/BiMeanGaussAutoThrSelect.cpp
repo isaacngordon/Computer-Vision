@@ -54,7 +54,7 @@ int main(int argc, char *argv[]){
  
 
      //set arg error message
-    string BAD_ARGS = "Correct arguement format is \"<inputFile> <outputFileHist> <outputFileGauss> <outputFileGaps>\".\nBoth should end in \'.txt\'.";
+    string BAD_ARGS = "Correct arguement format is \"<inputFile> <outputFileHist> <outputFileGauss> <outputFileGaps><outputInfo>\".\nBoth should end in \'.txt\'.";
 
     //check for correct number of args
     if(argc != 6){

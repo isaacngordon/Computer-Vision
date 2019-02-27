@@ -1,0 +1,113 @@
+BEST THRESHOLD VALUE: 43
+
+x                                                    
+x                                                    
+x                                                    
+ x                                                   
+ x                                                   
+ x                                                   
+  x                                                  
+  x                                                  
+   x                                                 
+    x                                                
+     x                                               
+      x                                              
+       x                                             
+        x                                            
+          x                                          
+            x                                        
+             x                                       
+               x                                     
+                 x                                   
+                   x                                 
+                     x                               
+                       x                             
+                         x                           
+                           x                         
+                             x                       
+                              x                      
+                               x                     
+                                x                    
+                                 x                   
+                                 x                   
+                                 x                   
+                                 x                   
+                                x                    
+                               x                     
+                              x                      
+                             x                       
+                           x                         
+                         x                           
+                       x                             
+                     x                               
+                   x                                 
+                 x                                   
+               x                                     
+             x   x                                   
+                              x                      
+                                             x       
+                                                     
+  x                                                  
+       x                                             
+   x                                            x    
+                                 x                   
+                   x                                 
+         x                                           
+
+
+============================================================================================================================================================
+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+x+
+============================================================================================================================================================
+                                                     
+                                                     
+xx                                                   
+ xx                                                  
+ xx                                                  
+ xx                                                  
+  xxx                                                
+  xxxxxx                                             
+   xxxxx                                             
+    xxxx                                             
+     xxx                                             
+      xx                                             
+       xx                                            
+        xxx                                          
+          x                                          
+                                                     
+             x                                       
+              x                                      
+              xxx                                    
+           xxxxxxxx                                  
+           xxxxxxxxxx                                
+               xxxxxxxx                              
+                        x                            
+                        xxx                          
+                        xxxxx                        
+                        xxxxxx                       
+                          xxxxx                      
+                              xx                     
+                              xxx                    
+                              xxx                    
+                        xxxxxxxxx                    
+                        xxxxxxxxx                    
+                             xxx                     
+                             xx                      
+                             x                       
+                                                     
+                           xx                        
+                         xxxxxxxxxxx                 
+                       xxxxxxxxxxxxxx                
+                     xxxxxxxxxxxxxxxxxx              
+                   xxxxxxxxxxxxxxxxxxxxx             
+                 xxxxxxxxxxxxxxxxxxxxxxx             
+               xxxxxxxxxxxxxxxxxxxxxxxxx             
+                 xxxxxxxxxxxxxxxxxxxxxxxx            
+                              xxxxxxxxxxxx           
+                                                     
+                                              xxxxxxx
+xx                                             xxxxxx
+xxxxxxx                                        xxxxxx
+xxx                                            x     
+                                 xxxxxxxxxxxxxx      
+                   xxxxxxxxxxxxxxxxxxxxxxxxxx        
+xxxxxxxxx                                            
