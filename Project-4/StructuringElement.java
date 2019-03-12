@@ -92,4 +92,53 @@ public class StructuringElement{
         return dims;
     }//computeFrame
 
+    /**
+     * @return the numRows
+     */
+    public int getNumRows() {
+        return numRows;
+    }
+
+    /**
+     * @return the numCols
+     */
+    public int getNumCols() {
+        return numCols;
+    }
+
+    /**
+     * @return the minVal
+     */
+    public int getMinVal() {
+        return minVal;
+    }
+
+    /**
+     * @return the maxVal
+     */
+    public int getMaxVal() {
+        return maxVal;
+    }
+
+    /**
+     * @return the originX
+     */
+    public int getOriginX() {
+        return originX;
+    }
+
+    /**
+     * @return the originY
+     */
+    public int getOriginY() {
+        return originY;
+    }
+
+    /**
+     * @return the structImgArray
+     */
+    public int[][] getStructImgArray() {
+        return structImgArray;
+    }
+
 }//class
