@@ -24,11 +24,28 @@ public abstract class Morpher {
         int bottom = frameDims[1];
         int left = frameDims[2];
         int right = frameDims[3];
+        int originVal = structElement.imgAry[structElement.getOriginX()][structElement.getOriginY()];
 
         //the actual dilation ASSUMES FRAMED IMAGE
         for(int r = top; r < originalImage.getNumRows() - bottom; r++){
             for(int c = left; c < originalImage.getNumCols() - right; c++){
-                dilate(r,c,originalImage,morphedImage);
+                //TODO:dilate i,j
+                if(originalImage.imgAry[r][c] == originVal){
+                    //dilate using each element of the structElement
+                    for(int i = 0; i < structElement.getNumRows(); i++){
+                        for(int j = 0; j < structElement.getNumCols(); j++){
+                            int x = r-top+i;
+                            int y = j-left+j;
+                            if(structElement.imgAry[i][j] == 1)
+                                morphedImage.imgAry[x][y] = 1;
+                            
+                        }//for
+                    }//for   
+                }//if
+
+                
+
+
             }//for
         }//for
 
@@ -60,7 +77,7 @@ public abstract class Morpher {
         //the actual erosion ASSUMES FRAMED IMAGE
         for(int r = top; r < originalImage.getNumRows() - bottom; r++){
             for(int c = left; c < originalImage.getNumCols() - right; c++){
-                erode(r,c,originalImage,morphedImage);
+                //TODO: erode i,j
             }//for
         }//for
 
@@ -88,6 +105,4 @@ public abstract class Morpher {
         morphedImage = erosion(morphedImage, structElement);
         return morphedImage;
     }//closing
-
-
 }//class
