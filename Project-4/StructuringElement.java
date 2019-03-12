@@ -15,30 +15,7 @@ public class StructuringElement{
     public StructuringElement(){
 
     }//null constructor
-
-    public StructuringElement(File structFile){
-        Scanner inStream = new Scanner(new FileReader(structFile));
-
-        //get header values
-        int rows, cols, min, max, x, y;
-        rows = inStream.nextInt();
-        cols = inStream.nextInt();
-        min = inStream.nextInt();
-        max = inStream.nextInt();
-        x = inStream.nextInt();
-        y = inStream.nextInt();
-
-        StructuringElement(rows, cols, min, max, x, y);
-
-        //get all image data
-        for(int i = 0; i < this.numRows; i++){
-            for(int j = 0; j < this.numCols; j++){
-                imgAry[i][j] = inStream.nextInt();
-            }//for
-        }//for
-        inStream.close();
-    }//main constructor
-
+    
     public StructuringElement(int numRows, int numCols, int minVal, int maxVal, int originX, int originY){
         this.numRows = numRows;
         this.numCols = numCols;
@@ -48,6 +25,28 @@ public class StructuringElement{
         this.originY = originY;
         initZeroArray();
     }//value contructor
+
+    public StructuringElement(File structFile) throws FileNotFoundException{
+        Scanner inStream = new Scanner(new FileReader(structFile));
+
+        //get header values
+        this.numRows = inStream.nextInt();
+        this.numCols = inStream.nextInt();
+        this.minVal = inStream.nextInt();
+        this.maxVal = inStream.nextInt();
+        this.originX = inStream.nextInt();
+        this.originY = inStream.nextInt();
+
+        //get all image data
+        for(int i = 0; i < this.numRows; i++){
+            for(int j = 0; j < this.numCols; j++){
+            	structImgArray[i][j] = inStream.nextInt();
+            }//for
+        }//for
+        inStream.close();
+    }//main constructor
+
+
 
     public void initZeroArray(){
         for(int r = 0; r < this.numRows; r++){

@@ -34,7 +34,7 @@ public class MorphologyMain {
             dilationResultOutFile = new File(args[2]);
             erosionResultOutFile = new File(args[3]);
             openingResultOutFile = new File(args[4]);
-            closingResultOutFile = new FIle(args[5]);
+            closingResultOutFile = new File(args[5]);
             Image img = new Image(imageInFile);
             StructuringElement structuringElement = new StructuringElement(structElementInFile);
             
@@ -72,7 +72,10 @@ public class MorphologyMain {
         } catch(FileNotFoundException fnf){
             fnf.printStackTrace();
             System.exit(0);
-        } 
+        } catch(IllegalArgumentException iae){
+        	iae.printStackTrace();
+        	System.exit(0);
+        }
        
 
 

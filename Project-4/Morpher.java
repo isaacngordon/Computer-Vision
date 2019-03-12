@@ -1,6 +1,7 @@
 import java.io.*;
 import java.util.*;
 
+
 public abstract class Morpher {
 
     /**
@@ -9,7 +10,7 @@ public abstract class Morpher {
      * @param originalImage the image to dilate
      * @param structElement the structuring element to use
      */
-    public Image dilation(Image originalImage, StructureElement structElement) throws IllegalArgumentException{
+    public static Image dilation(Image originalImage, StructuringElement structElement) throws IllegalArgumentException{
         //make sure the image inputted is a framed image
         if(!originalImage.isFramed()){
             throw new IllegalArgumentException("Inputted Image must be framed.");
@@ -24,7 +25,7 @@ public abstract class Morpher {
         int bottom = frameDims[1];
         int left = frameDims[2];
         int right = frameDims[3];
-        int originVal = structElement.imgAry[structElement.getOriginX()][structElement.getOriginY()];
+        int originVal = structElement.structImgArray[structElement.getOriginX()][structElement.getOriginY()];
 
         //the actual dilation ASSUMES FRAMED IMAGE
         for(int r = top; r < originalImage.getNumRows() - bottom; r++){
@@ -37,7 +38,7 @@ public abstract class Morpher {
                         for(int j = 0; j < structElement.getNumCols(); j++){
                             int x = r-top+i;
                             int y = j-left+j;
-                            if(structElement.imgAry[i][j] == 1)
+                            if(structElement.structImgArray[i][j] == 1)
                                 morphedImage.imgAry[x][y] = 1;
                         }//for j
                     }//for i
@@ -54,7 +55,7 @@ public abstract class Morpher {
      * @param originalImage the image to erode
      * @param structElement the structuring element to use
      */
-    public Image erosion(Image originalImage, StructureElement structElement){
+    public static Image erosion(Image originalImage, StructuringElement structElement){
         //make sure the image inputted is a framed image
         if(!originalImage.isFramed()){
             throw new IllegalArgumentException("Inputted Image must be framed.");
@@ -89,7 +90,7 @@ public abstract class Morpher {
 
                         //if the element cannot stand, set matches = false, reset i,j 
                         //this will cause the struct loops to start over triggering the above is statement
-                        if(!(structElement.imgAry[i][j] == originalImage.imgAry[x][y])){
+                        if(!(structElement.structImgArray[i][j] == originalImage.imgAry[x][y])){
                             matches = false;
                             i = 0;
                             j = 0;
@@ -103,7 +104,7 @@ public abstract class Morpher {
         return morphedImage;
     }//erosion
 
-    public Image opening(Image originalImage, StructureElement structElement){
+    public static Image opening(Image originalImage, StructuringElement structElement){
         //copy origional image
         Image morphedImage = new Image();
         morphedImage.copyImage(originalImage);
@@ -114,7 +115,7 @@ public abstract class Morpher {
         return morphedImage;
     }//opening
 
-    public Image closing(Image originalImage, StructureElement structElement){
+    public static Image closing(Image originalImage, StructuringElement structElement){
         //copy origional image
         Image morphedImage = new Image();
         morphedImage.copyImage(originalImage);

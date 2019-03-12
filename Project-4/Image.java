@@ -13,17 +13,24 @@ public class Image {
     public Image(){
 
     }//null contructor
+    
+    public Image(int numRows, int numCols, int minVal, int maxVal){
+        this.numRows = numRows;
+        this.numCols = numCols;
+        this.minVal = minVal;
+        this.maxVal = maxVal;
+        initWithZeros();
+    }//constructor w header
 
-    public Image(File imageFile){
+    public Image(File imageFile) throws FileNotFoundException{
         Scanner inStream = new Scanner(new FileReader(imageFile));
 
         //get header values
-        int rows, cols, min, max;
-        rows = inStream.nextInt();
-        cols = inStream.nextInt();
-        min = inStream.nextInt();
-        max = inStream.nextInt();
-        Image(rows, cols, min, max);
+        this.numRows = inStream.nextInt();
+        this.numCols = inStream.nextInt();
+        this.minVal = inStream.nextInt();
+        this.maxVal = inStream.nextInt();
+        initWithZeros();
 
         //get all image data
         for(int i = 0; i < this.numRows; i++){
@@ -37,15 +44,8 @@ public class Image {
         isFramed = false;
     }//constrcutor from file
 
-    public Image(int numRows, int numCols, int minVal, int maxVal){
-        this.numRows = numRows;
-        this.numCols = numCols;
-        this.minVal = minVal;
-        this.maxVal = maxVal;
-        initWithZeros();
-    }//constructor w header
 
-    /**
+	/**
      * Initializs imgAry with a 2D array of zeros.
      */
     public void initWithZeros(){
@@ -145,7 +145,7 @@ public class Image {
         //imgAry print -> if doBinary then print 0's else replace 0's with space
         for(int i = 0; i < numRows; i++){
             for(int j = 0; j < numCols; j++){
-                if(structImgArray[i][j] == 1)
+                if(this.imgAry[i][j] == 1)
                     System.out.print("1");
                 else{
                     if(doBinary) System.out.print("0");
@@ -159,13 +159,14 @@ public class Image {
     /**
      * Prints the image to an outputfile
      * @param outputFile the file to send the image
+     * @throws FileNotFoundException 
      */
-    public void prettyprint(File outputFile, boolean doBinary){
+    public void prettyprint(File outputFile, boolean doBinary) throws FileNotFoundException{
         PrintWriter outputstream = new PrintWriter(outputFile);
         outputstream.println(numRows + " " + numCols  + " " + minVal  + " " + maxVal);
 		for(int i = 0; i < numRows; i++){
             for(int j = 0; j < numCols; j++){
-                if(structImgArray[i][j] == 1)
+                if(this.imgAry[i][j] == 1)
                     outputstream.print("1");
                 else{
                     if(doBinary) outputstream.print("0");
