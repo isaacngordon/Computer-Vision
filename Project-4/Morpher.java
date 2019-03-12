@@ -29,7 +29,8 @@ public abstract class Morpher {
         //the actual dilation ASSUMES FRAMED IMAGE
         for(int r = top; r < originalImage.getNumRows() - bottom; r++){
             for(int c = left; c < originalImage.getNumCols() - right; c++){
-                //TODO:dilate i,j
+                
+                //if the origin matches the current pixel, then dilate
                 if(originalImage.imgAry[r][c] == originVal){
                     //dilate using each element of the structElement
                     for(int i = 0; i < structElement.getNumRows(); i++){
@@ -38,16 +39,11 @@ public abstract class Morpher {
                             int y = j-left+j;
                             if(structElement.imgAry[i][j] == 1)
                                 morphedImage.imgAry[x][y] = 1;
-                            
-                        }//for
-                    }//for   
+                        }//for j
+                    }//for i
                 }//if
-
-                
-
-
-            }//for
-        }//for
+            }//for c
+        }//for r
 
         return morphedImage;
     }//dilation
