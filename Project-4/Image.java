@@ -78,7 +78,7 @@ public class Image {
         if(this.isFramed) return framedImage;
 
         //get all frame dims
-        int[] frameDims = computeFrame(structuringElement);
+        int[] frameDims = structuringElement.computeFrame();
         int top = frameDims[0];
         int bottom = frameDims[1];
         int left  = frameDims[2];
@@ -104,22 +104,6 @@ public class Image {
     }//frame()
 
     /**
-     * Computes the framing dimesntions based on a given structuring element.
-     * @return int[4] = [topFrameDim, bottomFrameDim, leftFrameDim, rightFrameDim]
-     */
-    private int[] computeFrame(StructuringElement structuringElement){
-        int[] dims = new int[4];
-
-        //find distance from origin to all sides, and add said dims to dims[]
-        dims[0] = structuringElement.originY;
-        dims[1] = (structuringElement.numRows - 1) - structuringElement.originY;
-        dims[2] = structuringElement.originX;
-        dims[3] = (structuringElement.numCols - 1) - structuringElement.originX;
-
-        return dims;
-    }//computeFrame
-
-    /**
      * Unframe an image and return the unframed image
      * @return
      */
@@ -128,7 +112,7 @@ public class Image {
         if(!this.isFramed) return unframedImage;
 
         //find unframe image dims
-        int[] frameDims = computeFrame(structuringElement);
+        int[] frameDims = structuringElement.computeFrame();
         int top = frameDims[0];
         int bottom = frameDims[1];
         int left  = frameDims[2];

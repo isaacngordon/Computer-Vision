@@ -76,4 +76,20 @@ public class StructuringElement{
         }//for
     }//prettyPrint
 
+        /**
+     * Computes the framing dimesntions based on a given structuring element.
+     * @return int[4] = [topFrameDim, bottomFrameDim, leftFrameDim, rightFrameDim]
+     */
+    public int[] computeFrame(){
+        int[] dims = new int[4];
+
+        //find distance from origin to all sides, and add said dims to dims[]
+        dims[0] = this.originY;
+        dims[1] = (this.numRows - 1) - this.originY;
+        dims[2] = this.originX;
+        dims[3] = (this.numCols - 1) - this.originX;
+
+        return dims;
+    }//computeFrame
+
 }//class
