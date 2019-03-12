@@ -71,10 +71,11 @@ public class Image {
     /**
      * Creates a frame around this image based of the origin of the structuring element
      * @param structuringElement
-     * @return a copy of this image framed
+     * @return a copy of this image framed, null if the image is already framed
      */
     public Image frame(StructuringElement structuringElement){
-        Image framedImage = new Image();
+        Image framedImage = null;
+        if(this.isFramed) return framedImage;
 
         //get all frame dims
         int[] frameDims = computeFrame(structuringElement);
@@ -83,8 +84,21 @@ public class Image {
         int left  = frameDims[2];
         int right = frameDims[3];
 
-        //TODO:frame the current image and return a framed image
+        //get new imgAry, new row count, new col count
+        int newNumRows = this.numRows + top + bottom;
+        int newNumCols = this.numCols + left + right;
+        int[][] newImgAry = new int[newNumRows][newNumCols];
 
+        //copy this.imgAry into the framed newImgAry
+        for(int r = top; r < newNumRows - bottom; r++){
+            for(int c = left; c < newNumCols - right; c++){
+                newImgAry[r][c] = this.imgAry[r - top][c - left];
+            }//for
+        }//for
+
+        //create new framedImage to return
+        framedImage = new Image(newNumRows, newNumCols, this.minVal, this.maxVal);
+        framedImage.setImgAry(newImgAry);
         framedImage.setFramed(true);
         return framedImage;
     }//frame()
@@ -110,12 +124,29 @@ public class Image {
      * @return
      */
     public Image unframe(StructuringElement structuringElement){
-        Image unframedImage = new Image();
-        int[] dims = computeFrame(structuringElement);
+        Image unframedImage = null;
+        if(!this.isFramed) return unframedImage;
 
-        //TODO: unframe image
+        //find unframe image dims
+        int[] frameDims = computeFrame(structuringElement);
+        int top = frameDims[0];
+        int bottom = frameDims[1];
+        int left  = frameDims[2];
+        int right = frameDims[3];
 
+        int newNumRows = this.numRows - top - bottom;
+        int newNumCols = this.numCols - left - right;
+        int[][] newImgAry = new int[newNumRows][newNumCols];
+
+        //copy this.imgAry into the framed newImgAry
+        for(int r = 0; r < newNumRows; r++){
+            for(int c = 0; c < newNumCols; c++){
+                newImgAry[r][c] = this.imgAry[r + top][c + left];
+            }//for
+        }//for
         
+        unframedImage = new Image(newNumRows, newNumCols, this.minVal, this.maxVal);
+        unframedImage.setImgAry(newImgAry);
         unframedImage.setFramed(false);
         return unframedImage;
     }//unframe
@@ -123,16 +154,43 @@ public class Image {
     /**
      * Prints the image to the console
      */
-    public void prettyprint(){
+    public void prettyprint(boolean doBinary){
+        //header
+        System.out.println(numRows + " " + numCols + " " + minVal + " " + maxVal);
 
+        //imgAry print -> if doBinary then print 0's else replace 0's with space
+        for(int i = 0; i < numRows; i++){
+            for(int j = 0; j < numCols; j++){
+                if(structImgArray[i][j] == 1)
+                    System.out.print("1");
+                else{
+                    if(doBinary) System.out.print("0");
+                    else System.out.print(" ");
+                }//if-else
+            }//for
+            System.out.println();
+        }//for
     }//prettyprint to console
 
     /**
      * Prints the image to an outputfile
      * @param outputFile the file to send the image
      */
-    public void prettyprint(File outputFile){
-
+    public void prettyprint(File outputFile, boolean doBinary){
+        PrintWriter outputstream = new PrintWriter(outputFile);
+        outputstream.println(numRows + " " + numCols  + " " + minVal  + " " + maxVal);
+		for(int i = 0; i < numRows; i++){
+            for(int j = 0; j < numCols; j++){
+                if(structImgArray[i][j] == 1)
+                    outputstream.print("1");
+                else{
+                    if(doBinary) outputstream.print("0");
+                    else outputstream.print(" ");
+                }//if-else
+            }//for
+            outputstream.println();
+        }//for
+		outputstream.close();
     }//preetyprint to outputFile
 
     /**
@@ -140,7 +198,7 @@ public class Image {
      */
     public int getNumRows() {
         return numRows;
-    }
+    }//getNumRows
 
     /**
      * @param numRows the numRows to set
@@ -218,4 +276,5 @@ public class Image {
     public void setFramed(boolean isFramed) {
         this.isFramed = isFramed;
     }
+
 }//class
