@@ -8,12 +8,16 @@ public abstract class Morpher {
         Image morphedImage = new Image();
         morphedImage.copyImage(originalImage);
 
+        //TODO: the actual dilation
+
     }//dilation
 
     public Image erosion(Image originalImage, StructureElement structElement){
         //copy origional image
         Image morphedImage = new Image();
         morphedImage.copyImage(originalImage);
+
+        //TODO: the actual erosion
         
     }//erosion
 
