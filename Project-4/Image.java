@@ -95,7 +95,12 @@ public class Image {
      */
     private int[] computeFrame(StructuringElement structuringElement){
         int[] dims = new int[4];
-        //TODO: find distance from origin to all sides, and add said dims to dims[]
+
+        //find distance from origin to all sides, and add said dims to dims[]
+        dims[0] = structuringElement.originY;
+        dims[1] = (structuringElement.numRows - 1) - structuringElement.originY;
+        dims[2] = structuringElement.originX;
+        dims[3] = (structuringElement.numCols - 1) - structuringElement.originX;
 
         return dims;
     }//computeFrame
@@ -104,11 +109,13 @@ public class Image {
      * Unframe an image and return the unframed image
      * @return
      */
-    public Image unframe(Image framedImage, StructuringElement structuringElement){
+    public Image unframe(StructuringElement structuringElement){
         Image unframedImage = new Image();
         int[] dims = computeFrame(structuringElement);
 
         //TODO: unframe image
+
+        
         unframedImage.setFramed(false);
         return unframedImage;
     }//unframe
