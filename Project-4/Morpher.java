@@ -73,7 +73,39 @@ public abstract class Morpher {
         //the actual erosion ASSUMES FRAMED IMAGE
         for(int r = top; r < originalImage.getNumRows() - bottom; r++){
             for(int c = left; c < originalImage.getNumCols() - right; c++){
-                //TODO: erode i,j
+                //if the structELement can "stand" at r,c then do nothing, otherwise wipe to zeros
+                boolean matches = true;
+                for(int i = 0; i < structElement.getNumRows(); i++){
+                    for(int j = 0; j < structElement.getNumCols(); j++){
+                        int x = r-top+i;
+                        int y = j-left+j;
+
+                        //if matches=false, not a match then just set =0
+                        if(!matches){
+                            morphedImage.imgAry[x][y] = 0;
+                            continue;
+                        }//if
+
+                        //if the element cannot stand, set matches = false, reset loop variables 
+                        //this will cause the loops to start over triggering the above is statement
+                        if(!(structElement.imgAry[i][j] == originalImage.imgAry[x][y])){
+                            matches = false;
+                            i = 0;
+                            j = 0;
+                        }//if 
+                    }//for j
+                }//for i
+
+                //if not an exact match, wipe all to 0
+                if(!matches){
+                    for(int i = 0; i < structElement.getNumRows(); i++){
+                        for(int j = 0; j < structElement.getNumCols(); j++){
+                            int x = r-top+i;
+                            int y = j-left+j;
+                            
+                        }//for j
+                    }//for i
+                }
             }//for
         }//for
 
