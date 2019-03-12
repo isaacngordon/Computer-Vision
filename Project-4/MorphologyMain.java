@@ -42,37 +42,37 @@ public class MorphologyMain {
             Image framedImage = img.frame(structuringElement);
 
             //Step 2
-            framedImage.prettyprint();
-            structuringElement.prettyprint();
+            framedImage.prettyprint(true);
+            structuringElement.prettyprint(true);
             
             //Step 3
             Image dilatedImage = Morpher.dilation(framedImage, structuringElement);
-            dilatedImage.prettyprint();
+            dilatedImage.prettyprint(true);
             dilatedImage = dilatedImage.unframe(structuringElement);
-            dilatedImage.prettyprint(dilationResultOutFile);
+            dilatedImage.prettyprint(dilationResultOutFile, true);
 
             //Step 4
             Image erodedImage = Morpher.erosion(framedImage, structuringElement);
-            erodedImage.prettyprint();
+            erodedImage.prettyprint(true);
             erodedImage = erodedImage.unframe(structuringElement);
-            erodedImage.prettyprint(erosionResultOutFile);
+            erodedImage.prettyprint(erosionResultOutFile, true);
 
             //Step 5
             Image openedImage = Morpher.opening(framedImage, structuringElement);
-            openedImage.prettyprint();
+            openedImage.prettyprint(true);
             openedImage = openedImage.unframe(structuringElement);
-            openedImage.prettyprint(openingResultOutFile);
+            openedImage.prettyprint(openingResultOutFile, true);
 
             //Step 6
             Image closedImage = Morpher.closing(framedImage, structuringElement);
-            closedImage.prettyprint();
+            closedImage.prettyprint(true);
             closedImage = closedImage.unframe(structuringElement);
-            closedImage.prettyprint(closingResultOutFile);
+            closedImage.prettyprint(closingResultOutFile, true);
 
         } catch(FileNotFoundException fnf){
             fnf.printStackTrace();
             System.exit(0);
-        }
+        } 
        
 
 
