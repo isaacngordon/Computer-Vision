@@ -116,8 +116,8 @@ public class Image {
      * @return
      */
     public Image unframe(StructuringElement structuringElement){
-        Image unframedImage = null;
-        if(!this.isFramed) return unframedImage;
+        if(!this.isFramed) return this;
+        Image unframedImage = new Image();
 
         //find unframe image dims
         int[] frameDims = structuringElement.computeFrame();
@@ -137,7 +137,8 @@ public class Image {
             }//for
         }//for
         
-        unframedImage = new Image(newNumRows, newNumCols, this.minVal, this.maxVal);
+        unframedImage.setNumCols(newNumCols);
+        unframedImage.setNumRows(newNumRows);
         unframedImage.setImgAry(newImgAry);
         unframedImage.setFramed(false);
         return unframedImage;
