@@ -65,6 +65,7 @@ public class Image {
         this.numRows = image.getNumRows();
         this.minVal = image.getMinVal();
         this.maxVal = image.getMaxVal();
+        this.isFramed = image.isFramed();
         this.imgAry = new int[this.numRows][this.numCols];
         
         int[][] copyAry = image.getImgAry();
