@@ -256,7 +256,12 @@ public class Image {
      * @param imgAry the imgAry to set
      */
     public void setImgAry(int[][] imgAry) {
-        this.imgAry = imgAry;
+    	this.imgAry = new int[this.numRows][this.numCols];
+        for(int i = 0; i < imgAry.length; i++){
+        	for(int j = 0; j < imgAry[i].length;j++){
+        		this.imgAry[i][j] = imgAry[i][j];
+        	}
+        }
     }
 
     /**

@@ -36,11 +36,13 @@ public class StructuringElement{
         this.maxVal = inStream.nextInt();
         this.originX = inStream.nextInt();
         this.originY = inStream.nextInt();
+        this.structImgArray = new int[numRows][numCols];
 
         //get all image data
         for(int i = 0; i < this.numRows; i++){
             for(int j = 0; j < this.numCols; j++){
             	structImgArray[i][j] = inStream.nextInt();
+            	//System.out.println("round ("+ i+","+j+")= "+ structImgArray[i][j]);
             }//for
         }//for
         inStream.close();
@@ -58,7 +60,7 @@ public class StructuringElement{
 
     public void prettyprint(boolean doBinary){
         //headers
-        System.out.println(numRows + " " + numCols + " " + minVal + " " + maxVal);
+        System.out.println("\n" + numRows + " " + numCols + " " + minVal + " " + maxVal);
         System.out.println(originX + " " + originY);
 
         //structElement print -> if doBinary then print 0's else replace 0's with space
@@ -73,6 +75,7 @@ public class StructuringElement{
             }//for
             System.out.println();
         }//for
+        System.out.println("\n");
     }//prettyPrint
 
         /**
