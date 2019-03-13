@@ -61,11 +61,19 @@ public class Image {
      * @param imgAry the imgAry to set
      */
     public void copyImage(Image image) {
-        this.imgAry = image.getImgAry();
         this.numCols = image.getNumCols();
         this.numRows = image.getNumRows();
         this.minVal = image.getMinVal();
         this.maxVal = image.getMaxVal();
+        this.imgAry = new int[this.numRows][this.numCols];
+        
+        int[][] copyAry = image.getImgAry();
+        for(int i = 0; i < numRows; i++){
+        	for(int j=0; j < numCols; j++){
+        		this.imgAry[i][j] = copyAry[i][j];
+        	}//for
+        }//fpr
+        		
     }//copyImage
 
     /**
@@ -140,7 +148,7 @@ public class Image {
      */
     public void prettyprint(boolean doBinary){
         //header
-        System.out.println(numRows + " " + numCols + " " + minVal + " " + maxVal);
+        System.out.println("\n"+ numRows + " " + numCols + " " + minVal + " " + maxVal);
 
         //imgAry print -> if doBinary then print 0's else replace 0's with space
         for(int i = 0; i < numRows; i++){
@@ -154,6 +162,7 @@ public class Image {
             }//for
             System.out.println();
         }//for
+        System.out.println("\n");
     }//prettyprint to console
 
     /**
