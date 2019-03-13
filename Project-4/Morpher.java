@@ -64,44 +64,44 @@ public abstract class Morpher {
         
         //copy original image
         Image morphedImage = new Image();
-        morphedImage.copyImage(originalImage);
+        morphedImage.copyImage(originalImage);  
         int[] frameDims = structElement.computeFrame();
 
         int top = frameDims[0];
         int bottom = frameDims[1];
         int left = frameDims[2];
         int right = frameDims[3];
+        
+        int[][] newImgAry = new int[morphedImage.getNumRows()][morphedImage.getNumCols()];
+        for(int i = 0; i < morphedImage.getNumRows(); i++){
+        	for(int j = 0; j < morphedImage.getNumCols(); j++){
+        		newImgAry[i][j] = morphedImage.imgAry[i][j];
+        	}
+        }
 
         //the actual erosion ASSUMES FRAMED IMAGE
         for(int r = top; r < originalImage.getNumRows() - bottom; r++){
             for(int c = left; c < originalImage.getNumCols() - right; c++){
                 
                 //if the structElement can "stand" at r,c then do nothing, otherwise wipe to zeros
-                boolean matches = true;
+                boolean matches = true; 																int hit=0;
                 for(int i = 0; i < structElement.getNumRows(); i++){
                     for(int j = 0; j < structElement.getNumCols(); j++){
                         int x = r-top+i;
                         int y = c-left+j;
-
-                        //if matches=false, not a match then just set =0
-                        if(!matches){
-                            morphedImage.imgAry[x][y] = 0;
-                            continue;
-                        }//if
-
-                        //if the element cannot stand, set matches = false, reset i,j 
-                        //this will cause the struct loops to start over triggering the above is statement
-                        if(!(structElement.structImgArray[i][j] == originalImage.imgAry[x][y])){
+                        
+                        //if structElem at this index is 1 but diesnt natch, set mayeches=false
+                        if(!(structElement.structImgArray[i][j] == originalImage.imgAry[x][y]) && (structElement.structImgArray[i][j] == 1)){
                             matches = false;
-                            i = 0;
-                            j = 0;
                         }//if 
                     }//for j
                 }//for i
-
+                
+                //if there is no match here, wipe to zero
+                if(!matches) newImgAry[r][c] = 0;
             }//for
         }//for
-
+        morphedImage.setImgAry(newImgAry);
         return morphedImage;
     }//erosion
 
