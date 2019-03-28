@@ -37,6 +37,7 @@ int numRows, numCols, minVal, maxVal, newMin, newMax;
 int newLabel, numNb;  
 int* neighborAry;
 int* eqAry;
+int** zeroFramedAry;
 Property property;
 Property* ccProperties;
 
@@ -47,19 +48,63 @@ void loadNeighbors();
 void pass1();
 void pass2();
 void pass3();
-UNKNOWN drawboxes(...);
+void drawboxes(int** framedAr, Property* cc);
 UNKNOWN updateEQAry(...);
 UNKNOWN manageEQAry(...);
-void printCCproperty();
+void printCCproperty(ofstream &file);
 void prettyPrint(ofstream &file);
-void printEQAry();
-
-
-
+void printEQAry(ofstream &file);
 
 
 int main(int argc, char *argv[]){
 
+//STEP 0
+setup(argc, *argv);
+
+//STEP 1
+loadImage();
+
+//STEP 2
+pass1();
+prettyPrint(outFile1);
+printEQAry(outFile1);
+
+//STEP 3
+pass1();
+prettyPrint(outFile1);
+printEQAry(outFile1);
+
+//STEP 4
+pass2();
+prettyPrint(outFile1);
+printEQAry(outFile1);
+
+//STEP 5
+manageEQAry(...);
+printEQAry(outFile1);
+
+//STEP 6
+pass3();
+prettyPrint(outFile1);
+printEQAry(outFile1);
+
+//STEP 7 - Output the result of pass3 from zeroFramedAry to outFile2, begins at (1, 1) and ending at ?? 
+
+
+//STEP 8
+printCCproperty(outFile3);
+
+//STEP 9
+drawboxes(zeroFramedAry, ccProperties);
+
+//STEP 10 - output zeroFrameAry to outFile4
+
+//STEP 11
+inFile1.close();
+outFile1.close();
+outFile2.close();
+outFile3.close();
+outFile4.close();
 
 
 }//main
