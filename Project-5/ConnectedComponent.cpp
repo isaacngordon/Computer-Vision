@@ -149,7 +149,16 @@ void zeroFramed(){
     }//for
 }//zeroFramed 
 
-void loadImage();
+void loadImage(){
+    for(int i = 0; i < numRows; i++){
+        for(int j = 0; j < numCols; j++){
+            inFile1 >> zeroFramedAry[i+1][j+1];
+                                                    // cout << zeroFramedAry[i+1][j+1];
+        }//for
+    }//for
+
+}//loadImage
+
 void loadNeighbors();
 void pass1();
 void pass2();
