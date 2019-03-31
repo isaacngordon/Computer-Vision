@@ -167,5 +167,32 @@ void drawboxes(int** framedAr, Property* cc);
 void updateEQAry(...);
 void manageEQAry(...);
 void printCCproperty(ofstream &file);
-void prettyPrint(ofstream &file);
-void printEQAry(ofstream &file);
+
+void prettyPrint(ofstream &file){
+    for(int i = 0; i < numRows; i++){
+        for(int j = 0; j < numCols; j++){
+            int x = zeroFramedAry[i+1][j+1];
+            if(x == 0)
+                file << " " ;
+            else 
+                file << x ;
+        }//for
+        file << endl;
+    }//for
+    file << endl;
+}//prettyPrint
+
+void printEQAry(ofstream &file){
+    file << "EQ Table: " << endl;
+    for(int i = 0; i <= newLabel; i ++){
+        file << i << "|";
+    }//for
+
+    file << endl;
+
+    for(int i = 0; i <= newLabel; i ++){
+        file << eqAry[i] << "|";
+    }//for
+
+    file << "   newLabel: " << newLabel << endl << endl;
+}//printEQAry
