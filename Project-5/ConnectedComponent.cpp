@@ -46,7 +46,7 @@ Property* ccProperties;
 void setup(int argc, char *argv[]);
 void zeroFramed();
 void loadImage();
-void loadNeighbors();
+void loadNeighbors(int r, int c);
 void pass1();
 void pass2();
 void pass3();
@@ -140,6 +140,7 @@ void setup(int argc, char *argv[]){
     inFile1 >> maxVal;
 
     zeroFramed();
+    
 }//setup
 
 void zeroFramed(){
@@ -159,7 +160,16 @@ void loadImage(){
 
 }//loadImage
 
-void loadNeighbors();
+void loadNeighbors(int r, int c){
+    neighborAry = new int[9];
+    int index = 0;
+    for(int i = -1; i <= 1; r++){
+        for(int j= -1; j <= 1; j++){
+            neighborAry[index++] = zeroFramedAry[r+i][c+i];
+        }//for
+    }//fpr
+}//loaadNeighbors
+
 void pass1();
 void pass2();
 void pass3();
