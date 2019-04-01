@@ -7,8 +7,8 @@ using namespace std;
 
 /* Class Definitions */
 class Property{
-        int label, numpixels, minRow, minCol, maxRow, maxCol;
     public:
+        int label, numpixels, minRow, minCol, maxRow, maxCol;
         Property();
         void setLabel(int i);
         void setNumPixels(int i);
@@ -36,13 +36,14 @@ ofstream outFile1, outFile2, outFile3, outFile4;
 
 //data 
 int numRows, numCols, minVal, maxVal, newMin, newMax;
-int newLabel, numNb;  
+int newLabel, numNb, maxNumCC;  
 int* neighborAry;
 int* eqAry;
 int** zeroFramedAry;
 Property property;
 Property* ccProperties;
 
+/* Function Headers */
 void setup(int argc, char *argv[]);
 void zeroFramed();
 void loadImage();
@@ -51,7 +52,7 @@ void pass1();
 void pass2();
 void pass3();
 void drawboxes(int** framedAr, Property* cc);
-void updateEQAry(...);
+void updateEQAry(int oldLabel, int newLabel);
 void manageEQAry(...);
 void printCCproperty(ofstream &file);
 void prettyPrint(ofstream &file);
@@ -90,7 +91,7 @@ int main(int argc, char *argv[]){
     prettyPrint(outFile1);
     printEQAry(outFile1);
 
-    //STEP 7 - Output the result of pass3 from zeroFramedAry to outFile2, begins at (1, 1) and ending at ?? 
+    //TODO: STEP 7 - Output the result of pass3 from zeroFramedAry to outFile2, begins at (1, 1) and ending at ?? 
 
 
     //STEP 8
@@ -99,7 +100,7 @@ int main(int argc, char *argv[]){
     //STEP 9
     drawboxes(zeroFramedAry, ccProperties);
 
-    //STEP 10 - output zeroFrameAry to outFile4
+    //TODO: STEP 10 - output zeroFrameAry to outFile4
     
     
     //STEP 11
@@ -140,6 +141,7 @@ void setup(int argc, char *argv[]){
     inFile1 >> maxVal;
 
     zeroFramed();
+    ccProperties  = new Property[(int)((numRows + numCols) / 4)];
     
 }//setup
 
@@ -157,7 +159,6 @@ void loadImage(){
                                                     // cout << zeroFramedAry[i+1][j+1];
         }//for
     }//for
-
 }//loadImage
 
 void loadNeighbors(int r, int c){
@@ -173,8 +174,33 @@ void loadNeighbors(int r, int c){
 void pass1();
 void pass2();
 void pass3();
-void drawboxes(int** framedAr, Property* cc);
-void updateEQAry(...);
+
+void drawboxes(){
+    //Step 1 and 2
+    for(int i = 1; i < ccProperties.length; i++){
+        int minRow = ccProperties[i].minRow; // need to add 1
+        int minCol = ccProperties[i].minCol; // need to add 1
+        int maxRow = ccProperties[i].maxRow; // need to add 1
+        int maxCol = ccProperties[i].maxCol; // need to add 1
+        int label = ccProperties[i].label;
+
+        //Step 3
+        for(int x = minRow; x < maxRow + 1; x++){
+            zeroFramedAry[x][minCol] = label;
+            zeroFramedAry[x][maxCol] = label;
+        }//for
+        for(int x = minCol; x < maxCol + 1; x++){
+            zeroFramedAry[minRow][x] = label;
+            zeroFramedAry[maxRow][x] = label;
+        }//for
+    }//for
+
+}//drawboxes
+
+void updateEQAry(int index, int newLabel){
+    eqAry[index] = newLabel;
+}//updatedEQAry
+
 void manageEQAry(...);
 void printCCproperty(ofstream &file);
 
