@@ -201,8 +201,28 @@ void updateEQAry(int index, int newLabel){
     eqAry[index] = newLabel;
 }//updatedEQAry
 
-void manageEQAry(...);
-void printCCproperty(ofstream &file);
+void manageEQAry(){
+    for(int i = 1; i < newLabel; i++){
+        int val = eqAry[i];
+        while(!(val==i)){
+            val = eqAry[val];
+        }//while
+        eqAry[i] = val;
+    }//for
+}//manageEQAry
+
+void printCCproperty(ofstream &file){
+    file << "CONNECTED COMPONENT PROPERTIES" << endl;
+    file << "------------------------------" << endl << endl;
+    for(int i = 0; i < ccProperties.length; i++){
+        Property p = ccProperties[i];
+        file << p.label << endl;
+        file << p.numpixels << endl;
+        file << p.minRow << ", " << p.minCol << endl;
+        file << p.maxRow << "," << p.maxCol << endl;
+        file << endl;
+    }//for
+}//printCCproperty
 
 void prettyPrint(ofstream &file){
     for(int i = 0; i < numRows; i++){
