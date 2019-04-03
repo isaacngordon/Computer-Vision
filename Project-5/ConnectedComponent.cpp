@@ -51,16 +51,15 @@ void loadNeighbors(int r, int c);
 void pass1();
 void pass2();
 void pass3();
-void drawboxes(int** framedAr, Property* cc);
-void updateEQAry(int oldLabel, int newLabel);
-void manageEQAry(...);
+void drawboxes();
+void updateEQAry(int oldLabel, int newL);
+void manageEQAry();
 void printCCproperty(ofstream &file);
-void prettyPrint(ofstream &file);
+void prettyPrint(ofstream &file, bool wFrame);
 void printEQAry(ofstream &file);
 
 
 int main(int argc, char *argv[]){
-
     //STEP 0
     setup(argc, argv);
 
@@ -69,39 +68,38 @@ int main(int argc, char *argv[]){
 
     //STEP 2
     pass1();
-    prettyPrint(outFile1);
+    prettyPrint(outFile1, true);
     printEQAry(outFile1);
 
     //STEP 3
-    pass1();
-    prettyPrint(outFile1);
+    pass2();
+    prettyPrint(outFile1, true);
     printEQAry(outFile1);
 
     //STEP 4
-    pass2();
-    prettyPrint(outFile1);
+    manageEQAry();
+    outFile1 << "---EQ AFTER MANAGEMENT---" << endl;
     printEQAry(outFile1);
 
     //STEP 5
-    manageEQAry(...);
+    pass3();
+    prettyPrint(outFile1,true);
     printEQAry(outFile1);
 
     //STEP 6
-    pass3();
-    prettyPrint(outFile1);
-    printEQAry(outFile1);
+    outFile2 << numRows << numCols << minVal << maxVal << endl;
 
-    //TODO: STEP 7 - Output the result of pass3 from zeroFramedAry to outFile2, begins at (1, 1) and ending at ?? 
-
+    //STEP 7 - Output the result of pass3 from zeroFramedAry to outFile2, begins at (1, 1) and ending at ?? 
+    prettyPrint(outFile2, false);
 
     //STEP 8
     printCCproperty(outFile3);
 
     //STEP 9
-    drawboxes(zeroFramedAry, ccProperties);
+    drawboxes();
 
-    //TODO: STEP 10 - output zeroFrameAry to outFile4
-    
+    //STEP 10 - output zeroFrameAry w boxes to outFile4
+    prettyPrint(outFile4, true);
     
     //STEP 11
     inFile1.close();
@@ -109,12 +107,10 @@ int main(int argc, char *argv[]){
     outFile2.close();
     outFile3.close();
     outFile4.close();
-
 }//main
 
 
 void setup(int argc, char *argv[]){
-
     string err = "";
     err += "Improper arguements. Correct syntax is: \n>> ... <input1.txt> <output1.txt> <output2.txt> <output3.txt> <output4.txt>";
     err += "\n\twhere: \n\tinput1.txt is a binary image with header \n\toutput1.txt is a file to ";
@@ -141,8 +137,11 @@ void setup(int argc, char *argv[]){
     inFile1 >> maxVal;
 
     zeroFramed();
-    ccProperties  = new Property[(int)((numRows + numCols) / 4)];
-    
+    maxNumCC = (int)((numRows + numCols) / 4);
+    ccProperties  = new Property[maxNumCC];
+    newLabel = 0;
+    eqAry = new int[maxNumCC];
+    for(int k = 0; k < maxNumCC; k++) eqAry[k] = k;
 }//setup
 
 void zeroFramed(){
@@ -171,17 +170,148 @@ void loadNeighbors(int r, int c){
     }//fpr
 }//loaadNeighbors
 
-void pass1();
-void pass2();
-void pass3();
+//O(2 + numRows*numCols*(c)) = O(numPixels) 
+void pass1(){
+    int x = 1;
+    int y = 1;
+
+    //scan L-R, T-B
+    for(int i = 0; i < numRows; i++){
+        for(int j = 0; j < numCols; j++){
+            if(zeroFramedAry[i+y][j+x] == 0) continue;  //if p(i,j) is zero skip to next pixel
+            loadNeighbors(i+y, j+x);                    //otherwise load neighbrs
+    
+            //scan first half and look for labels
+            
+
+            //Identify which case we are in by counting number of nonzero neighbors
+            int countNonZeros = 0;
+            for(int i = 0; i <  4; i++){
+                if(neighborAry[i] != 0) countNonZeros++;
+            }//for 4
+
+            //Case 1: all front neighbors are zero
+            if(countNonZeros == 0){
+                zeroFramedAry[i+y][j+x] = ++newLabel;
+            }//case1
+
+            //Case 2: Only one non-zero label
+            else if(countNonZeros == 1){
+                for(int i = 0; i <  4; i++){
+                    if(neighborAry[i] != 0){
+                        zeroFramedAry[i+y][j+x] = neighborAry[i];
+                    }//if
+                }//for
+            }//if case 2
+
+            //Case 3: more than one non-zero labeled neighbor
+            else{
+                //find smallesnt non-zero label
+                int smallestLabel = 1000000;
+                for(int i = 0; i <  4; i++){
+                    if(neighborAry[i] != 0){
+                        if(neighborAry[i] < smallestLabel) smallestLabel = neighborAry[i];
+                    }//if
+                }//for
+
+                //Update EQ array 
+                for(int i = 0; i <  4; i++){
+                    if(neighborAry[i] > smallestLabel) 
+                        updateEQAry(neighborAry[i], smallestLabel);
+                }//for
+
+                //set p(i,j) = smallestlabel
+                zeroFramedAry[i+y][j+x] = smallestLabel;
+            }//else case 3
+        }//for cols
+    }//for rows
+}//pass1
+
+void pass2(){
+    int x = 1;
+    int y = 1;
+
+    //scan R-L, B-T
+    for(int i = numRows+y; i > y-1; i--){
+        for(int j = numCols+x; j > x-1; j++){
+            if(zeroFramedAry[i][j] == 0) continue;  //if p(i,j) is zero skip
+            loadNeighbors(i,j);                     //else load neighbors
+
+            //Identify which case we are in by counting number of nonzero neighbors
+            int countNonZeros = 0;
+            int pVal = neighborAry[4];
+            bool isCase3 = false;
+            for(int i = 5; i < 9; i++){
+                if(neighborAry[i] != 0){
+                    countNonZeros++;
+                    if(pVal != neighborAry[i] && pVal != -1)
+                        isCase3 = true;
+                }//if non zero neighbor
+            }//for 4
+
+            //Case 1: if lower neighbors are all zero do nothing
+            if(countNonZeros == 0) continue;
+
+            //Case 2: all non zero labels are the same  
+            if(!isCase3) continue;
+
+            //Case 3: There is a label conflict
+            else{
+                //find smallest label in the conflict
+                int minLabel = 1000000;
+                for(int i = 4; i < 9; i++){
+                    if((neighborAry[i] != 0) && (neighborAry[i] < minLabel)) 
+                        minLabel = neighborAry[i];
+                }//for
+
+                //update EQTable if needed
+                if(neighborAry[4] < minLabel){
+                    updateEQAry(neighborAry[4], minLabel);
+                    zeroFramedAry[i][j] = minLabel;
+                }//if
+            }//case 3        
+        }//for cols
+    }//for rows
+}//pass2
+
+void pass3(){
+    //fill up CCproperties array
+    for(int i = 0; i < maxNumCC; i++){
+        Property p;
+        p.setLabel(i);
+        p.setMaxCol(-1);
+        p.setMaxRow(-1);
+        p.setMinCol(1000000);
+        p.setMinRow(1000000);
+        ccProperties[i] = p;
+    }//for
+
+    for(int i = 1; i < numRows+1; i++){
+        for(int j = 1; j < numCols+1; j++){
+            //use EQtable to fix all labels
+            int v = zeroFramedAry[i][j];
+            if(v != eqAry[v]){
+                zeroFramedAry[i][j] = eqAry[v];
+                v = zeroFramedAry[i][j];
+            }//if
+            
+            //edit property values for Property V
+            if(i < ccProperties[v].minRow) ccProperties[v].setMinRow(i);
+            if(i > ccProperties[v].maxRow) ccProperties[v].setMaxRow(i);
+            if(j < ccProperties[v].minCol) ccProperties[v].setMinCol(j);
+            if(j > ccProperties[v].maxCol) ccProperties[v].setMaxCol(j);
+            ccProperties[v].numpixels++;
+        }//for cols
+    }//for rows
+}//pass3
 
 void drawboxes(){
     //Step 1 and 2
-    for(int i = 1; i < ccProperties.length; i++){
-        int minRow = ccProperties[i].minRow; // need to add 1
-        int minCol = ccProperties[i].minCol; // need to add 1
-        int maxRow = ccProperties[i].maxRow; // need to add 1
-        int maxCol = ccProperties[i].maxCol; // need to add 1
+    for(int i = 1; i < newLabel; i++){
+        int minRow = ccProperties[i].minRow + 1; // need to add 1 for frame compensation
+        int minCol = ccProperties[i].minCol + 1; // need to add 1 for frame compensation
+        int maxRow = ccProperties[i].maxRow + 1; // need to add 1 for frame compensation
+        int maxCol = ccProperties[i].maxCol + 1; // need to add 1 for frame compensation
         int label = ccProperties[i].label;
 
         //Step 3
@@ -194,17 +324,17 @@ void drawboxes(){
             zeroFramedAry[maxRow][x] = label;
         }//for
     }//for
-
 }//drawboxes
 
-void updateEQAry(int index, int newLabel){
-    eqAry[index] = newLabel;
+void updateEQAry(int index, int newL){
+    eqAry[index] = newL;
 }//updatedEQAry
 
 void manageEQAry(){
-    for(int i = 1; i < newLabel; i++){
+    for(int i = 1; i < maxNumCC; i++){
         int val = eqAry[i];
-        while(!(val==i)){
+        if(val == i) continue;
+        while(!(val==eqAry[val])){
             val = eqAry[val];
         }//while
         eqAry[i] = val;
@@ -214,7 +344,7 @@ void manageEQAry(){
 void printCCproperty(ofstream &file){
     file << "CONNECTED COMPONENT PROPERTIES" << endl;
     file << "------------------------------" << endl << endl;
-    for(int i = 0; i < ccProperties.length; i++){
+    for(int i = 0; i < newLabel; i++){
         Property p = ccProperties[i];
         file << p.label << endl;
         file << p.numpixels << endl;
@@ -224,10 +354,14 @@ void printCCproperty(ofstream &file){
     }//for
 }//printCCproperty
 
-void prettyPrint(ofstream &file){
-    for(int i = 0; i < numRows; i++){
-        for(int j = 0; j < numCols; j++){
-            int x = zeroFramedAry[i+1][j+1];
+void prettyPrint(ofstream &file, bool withFrame){
+    int b;
+    if(withFrame) b = 0;
+    else b = 1;
+    
+    for(int i = 0; i < numRows + (2-b); i++){
+        for(int j = 0; j < numCols + (2-b); j++){
+            int x = zeroFramedAry[i+b][j+b];
             if(x == 0)
                 file << " " ;
             else 
@@ -240,13 +374,13 @@ void prettyPrint(ofstream &file){
 
 void printEQAry(ofstream &file){
     file << "EQ Table: " << endl;
-    for(int i = 0; i <= newLabel; i ++){
+    for(int i = 0; i < maxNumCC; i ++){
         file << i << "|";
     }//for
 
     file << endl;
 
-    for(int i = 0; i <= newLabel; i ++){
+    for(int i = 0; i < maxNumCC; i ++){
         file << eqAry[i] << "|";
     }//for
 
