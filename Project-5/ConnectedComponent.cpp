@@ -10,12 +10,24 @@ class Property{
     public:
         int label, numpixels, minRow, minCol, maxRow, maxCol;
         Property();
-        void setLabel(int i);
-        void setNumPixels(int i);
-        void setMinRow(int i);
-        void setMinCol(int i);
-        void setMaxRow(int i);
-        void setMaxCol(int i);
+        void setLabel(int i){
+            label = i;
+        }
+        void incrementNumPixels(){
+            numpixels++;
+        }
+        void setMinRow(int i){
+            minRow = i;
+        }
+        void setMinCol(int i){
+            minCol = i;
+        }
+        void setMaxRow(int i){
+            maxRow = i;
+        }
+        void setMaxCol(int i){
+            maxCol = i;
+        }
 };//PropertyClass
 
 //Property constructor
@@ -44,7 +56,7 @@ Property property;
 Property* ccProperties;
 
 /* Function Headers */
-void setup(int argc, char *argv[]);
+int setup(int argc, char *argv[]);
 void zeroFramed();
 void loadImage();
 void loadNeighbors(int r, int c);
@@ -61,18 +73,21 @@ void printEQAry(ofstream &file);
 
 int main(int argc, char *argv[]){
     //STEP 0
-    setup(argc, argv);
+    int good = setup(argc, argv);
+    if(good == -1) return 0;
 
     //STEP 1
     loadImage();
 
     //STEP 2
     pass1();
+    cout << "PASS 1 done"<<endl;
     prettyPrint(outFile1, true);
     printEQAry(outFile1);
 
     //STEP 3
     pass2();
+    cout << "PASS 2 done"<<endl;
     prettyPrint(outFile1, true);
     printEQAry(outFile1);
 
@@ -83,11 +98,15 @@ int main(int argc, char *argv[]){
 
     //STEP 5
     pass3();
+    cout << "PASS 3 done"<<endl;
     prettyPrint(outFile1,true);
     printEQAry(outFile1);
 
     //STEP 6
-    outFile2 << numRows << numCols << minVal << maxVal << endl;
+    outFile2 << numRows << " ";
+    outFile2 << numCols << " ";
+    outFile2 << minVal << " ";
+    outFile2 << maxVal << endl;
 
     //STEP 7 - Output the result of pass3 from zeroFramedAry to outFile2, begins at (1, 1) and ending at ?? 
     prettyPrint(outFile2, false);
@@ -107,10 +126,12 @@ int main(int argc, char *argv[]){
     outFile2.close();
     outFile3.close();
     outFile4.close();
+
+    return 0;
 }//main
 
 
-void setup(int argc, char *argv[]){
+int setup(int argc, char *argv[]){
     string err = "";
     err += "Improper arguements. Correct syntax is: \n>> ... <input1.txt> <output1.txt> <output2.txt> <output3.txt> <output4.txt>";
     err += "\n\twhere: \n\tinput1.txt is a binary image with header \n\toutput1.txt is a file to ";
@@ -121,7 +142,7 @@ void setup(int argc, char *argv[]){
     //check for bad num or args
     if(argc != 6){
         cout << err <<endl;
-        exit(0);
+        return -1;
     }//if
 
     //get filestreams
@@ -142,12 +163,17 @@ void setup(int argc, char *argv[]){
     newLabel = 0;
     eqAry = new int[maxNumCC];
     for(int k = 0; k < maxNumCC; k++) eqAry[k] = k;
+
+    return 0;
 }//setup
 
 void zeroFramed(){
     zeroFramedAry = new int*[numRows + 2];
     for(int i = 0; i < numRows + 2; i++){
         zeroFramedAry[i] = new int[numCols+2];
+        for(int j = 0; j < numCols+2; j++){
+            zeroFramedAry[i][j] = 0;
+        }//for
     }//for
 }//zeroFramed 
 
@@ -155,7 +181,6 @@ void loadImage(){
     for(int i = 0; i < numRows; i++){
         for(int j = 0; j < numCols; j++){
             inFile1 >> zeroFramedAry[i+1][j+1];
-                                                    // cout << zeroFramedAry[i+1][j+1];
         }//for
     }//for
 }//loadImage
@@ -163,7 +188,7 @@ void loadImage(){
 void loadNeighbors(int r, int c){
     neighborAry = new int[9];
     int index = 0;
-    for(int i = -1; i <= 1; r++){
+    for(int i = -1; i <= 1; i++){
         for(int j= -1; j <= 1; j++){
             neighborAry[index++] = zeroFramedAry[r+i][c+i];
         }//for
@@ -181,13 +206,10 @@ void pass1(){
             if(zeroFramedAry[i+y][j+x] == 0) continue;  //if p(i,j) is zero skip to next pixel
             loadNeighbors(i+y, j+x);                    //otherwise load neighbrs
     
-            //scan first half and look for labels
-            
-
             //Identify which case we are in by counting number of nonzero neighbors
             int countNonZeros = 0;
-            for(int i = 0; i <  4; i++){
-                if(neighborAry[i] != 0) countNonZeros++;
+            for(int f = 0; f <  4; f++){
+                if(neighborAry[f] != 0) countNonZeros++;
             }//for 4
 
             //Case 1: all front neighbors are zero
@@ -197,27 +219,27 @@ void pass1(){
 
             //Case 2: Only one non-zero label
             else if(countNonZeros == 1){
-                for(int i = 0; i <  4; i++){
-                    if(neighborAry[i] != 0){
-                        zeroFramedAry[i+y][j+x] = neighborAry[i];
+               for(int f = 0; f <  4; f++){
+                    if(neighborAry[f] != 0){
+                        zeroFramedAry[i+y][j+x] = neighborAry[f];
                     }//if
                 }//for
             }//if case 2
 
             //Case 3: more than one non-zero labeled neighbor
             else{
-                //find smallesnt non-zero label
+               //find smallesnt non-zero label
                 int smallestLabel = 1000000;
-                for(int i = 0; i <  4; i++){
-                    if(neighborAry[i] != 0){
-                        if(neighborAry[i] < smallestLabel) smallestLabel = neighborAry[i];
+                for(int f = 0; f <  4; f++){
+                    if(neighborAry[f] != 0){
+                        if(neighborAry[f] < smallestLabel) smallestLabel = neighborAry[f];
                     }//if
                 }//for
 
                 //Update EQ array 
-                for(int i = 0; i <  4; i++){
-                    if(neighborAry[i] > smallestLabel) 
-                        updateEQAry(neighborAry[i], smallestLabel);
+                for(int f = 0; f <  4; f++){
+                    if(neighborAry[f] > smallestLabel) 
+                        updateEQAry(neighborAry[f], smallestLabel);
                 }//for
 
                 //set p(i,j) = smallestlabel
@@ -233,7 +255,7 @@ void pass2(){
 
     //scan R-L, B-T
     for(int i = numRows+y; i > y-1; i--){
-        for(int j = numCols+x; j > x-1; j++){
+        for(int j = numCols+x; j > x-1; j--){
             if(zeroFramedAry[i][j] == 0) continue;  //if p(i,j) is zero skip
             loadNeighbors(i,j);                     //else load neighbors
 
@@ -241,10 +263,10 @@ void pass2(){
             int countNonZeros = 0;
             int pVal = neighborAry[4];
             bool isCase3 = false;
-            for(int i = 5; i < 9; i++){
-                if(neighborAry[i] != 0){
+            for(int f = 5; f < 9; f++){
+                if(neighborAry[f] != 0){
                     countNonZeros++;
-                    if(pVal != neighborAry[i] && pVal != -1)
+                    if(pVal != neighborAry[f] && pVal != -1)
                         isCase3 = true;
                 }//if non zero neighbor
             }//for 4
@@ -259,9 +281,9 @@ void pass2(){
             else{
                 //find smallest label in the conflict
                 int minLabel = 1000000;
-                for(int i = 4; i < 9; i++){
-                    if((neighborAry[i] != 0) && (neighborAry[i] < minLabel)) 
-                        minLabel = neighborAry[i];
+                for(int f = 4; f < 9; f++){
+                    if((neighborAry[f] != 0) && (neighborAry[f] < minLabel)) 
+                        minLabel = neighborAry[f];
                 }//for
 
                 //update EQTable if needed
@@ -300,7 +322,7 @@ void pass3(){
             if(i > ccProperties[v].maxRow) ccProperties[v].setMaxRow(i);
             if(j < ccProperties[v].minCol) ccProperties[v].setMinCol(j);
             if(j > ccProperties[v].maxCol) ccProperties[v].setMaxCol(j);
-            ccProperties[v].numpixels++;
+            ccProperties[v].incrementNumPixels();
         }//for cols
     }//for rows
 }//pass3
@@ -365,7 +387,8 @@ void prettyPrint(ofstream &file, bool withFrame){
             if(x == 0)
                 file << " " ;
             else 
-                file << x ;
+                file << x;
+            file << " ";
         }//for
         file << endl;
     }//for
