@@ -68,6 +68,7 @@ void updateEQAry(int oldLabel, int newL);
 void manageEQAry();
 void printCCproperty(ofstream &file);
 void prettyPrint(ofstream &file, bool wFrame);
+void pp(ofstream &file, bool withFrame);
 void printEQAry(ofstream &file);
 
 
@@ -109,7 +110,7 @@ int main(int argc, char *argv[]){
     outFile2 << maxVal << endl;
 
     //STEP 7 - Output the result of pass3 from zeroFramedAry to outFile2, begins at (1, 1) and ending at ?? 
-    prettyPrint(outFile2, false);
+    pp(outFile2, false);
 
     //STEP 8
     printCCproperty(outFile3);
@@ -188,40 +189,41 @@ void loadImage(){
 void loadNeighbors(int r, int c){
     neighborAry = new int[9];
     int index = 0;
-    for(int i = -1; i <= 1; i++){
-        for(int j= -1; j <= 1; j++){
-            neighborAry[index++] = zeroFramedAry[r+i][c+i];
+    cout << "na for (" << r << ", " << c << "): ";
+    for(int i = r-1; i <= r+1; i++){
+        for(int j= c-1; j <= c+1; j++){
+            neighborAry[index++] = zeroFramedAry[i][j];
+            cout << neighborAry[index - 1];
         }//for
     }//fpr
+    
+    cout << endl;
 }//loaadNeighbors
 
 //O(2 + numRows*numCols*(c)) = O(numPixels) 
 void pass1(){
-    int x = 1;
-    int y = 1;
-
     //scan L-R, T-B
-    for(int i = 0; i < numRows; i++){
-        for(int j = 0; j < numCols; j++){
-            if(zeroFramedAry[i+y][j+x] == 0) continue;  //if p(i,j) is zero skip to next pixel
-            loadNeighbors(i+y, j+x);                    //otherwise load neighbrs
+    for(int i = 1; i < numRows+1; i++){
+        for(int j = 1; j < numCols+1; j++){
+            if(zeroFramedAry[i][j] == 0) continue;  //if p(i,j) is zero skip to next pixel
+            loadNeighbors(i, j);                    //otherwise load neighbrs
     
             //Identify which case we are in by counting number of nonzero neighbors
             int countNonZeros = 0;
-            for(int f = 0; f <  4; f++){
+            for(int f = 0; f < 4; f++){
                 if(neighborAry[f] != 0) countNonZeros++;
             }//for 4
-
+    cout << "numNonZero: " << countNonZeros;
             //Case 1: all front neighbors are zero
             if(countNonZeros == 0){
-                zeroFramedAry[i+y][j+x] = ++newLabel;
+                zeroFramedAry[i][j] = ++newLabel;
             }//case1
 
             //Case 2: Only one non-zero label
             else if(countNonZeros == 1){
                for(int f = 0; f <  4; f++){
                     if(neighborAry[f] != 0){
-                        zeroFramedAry[i+y][j+x] = neighborAry[f];
+                        zeroFramedAry[i][j] = neighborAry[f];
                     }//if
                 }//for
             }//if case 2
@@ -243,19 +245,17 @@ void pass1(){
                 }//for
 
                 //set p(i,j) = smallestlabel
-                zeroFramedAry[i+y][j+x] = smallestLabel;
+                zeroFramedAry[i][j] = smallestLabel;
             }//else case 3
+            cout << " and newLabel is now " << newLabel << " while p(" << i << ", " << j << ")= "<< zeroFramedAry[i][j]<< endl;
         }//for cols
     }//for rows
 }//pass1
 
 void pass2(){
-    int x = 1;
-    int y = 1;
-
-    //scan R-L, B-T
-    for(int i = numRows+y; i > y-1; i--){
-        for(int j = numCols+x; j > x-1; j--){
+     //scan R-L, B-T
+    for(int i = numRows+1; i > 0; i--){
+        for(int j = numCols+1; j > 0; j--){
             if(zeroFramedAry[i][j] == 0) continue;  //if p(i,j) is zero skip
             loadNeighbors(i,j);                     //else load neighbors
 
@@ -329,7 +329,7 @@ void pass3(){
 
 void drawboxes(){
     //Step 1 and 2
-    for(int i = 1; i < newLabel; i++){
+    for(int i = 1; i < newLabel+1; i++){
         int minRow = ccProperties[i].minRow + 1; // need to add 1 for frame compensation
         int minCol = ccProperties[i].minCol + 1; // need to add 1 for frame compensation
         int maxRow = ccProperties[i].maxRow + 1; // need to add 1 for frame compensation
@@ -366,7 +366,7 @@ void manageEQAry(){
 void printCCproperty(ofstream &file){
     file << "CONNECTED COMPONENT PROPERTIES" << endl;
     file << "------------------------------" << endl << endl;
-    for(int i = 0; i < newLabel; i++){
+    for(int i = 0; i < newLabel+1; i++){
         Property p = ccProperties[i];
         file << p.label << endl;
         file << p.numpixels << endl;
@@ -388,6 +388,22 @@ void prettyPrint(ofstream &file, bool withFrame){
                 file << " " ;
             else 
                 file << x;
+            file << " ";
+        }//for
+        file << endl;
+    }//for
+    file << endl;
+}//prettyPrint
+
+void pp(ofstream &file, bool withFrame){
+    int b;
+    if(withFrame) b = 0;
+    else b = 1;
+    
+    for(int i = 0; i < numRows + (2-b); i++){
+        for(int j = 0; j < numCols + (2-b); j++){
+            int x = zeroFramedAry[i+b][j+b];
+            file << x;
             file << " ";
         }//for
         file << endl;
