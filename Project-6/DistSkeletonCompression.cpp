@@ -30,9 +30,9 @@ int isMaxima(int i, int j);
 void computeLocalMaxima(int **&zAry, int **&skelAry);
 void extractLocalMaxima(int **&skelAry, ofstream &file);
 void skeletonExpansion(ifstream &skelfile, int **&ary);
-void loadFromSkeleton(ifstream &skelfile, int **&ary);
-void firstPassExtraction();
-void secondPassExtraction();
+void loadFromSkeleton(ifstream &file, int **ary);
+void firstPassExtraction(int **&ary);
+void secondPassExtraction(int **&ary);
 void sendToFile(int **&ary, ofstream &file);
 void prettyPrint(int **&ary, ofstream &file, bool includeZero);
 
@@ -171,7 +171,7 @@ void compute8Distance(int **&ary, ofstream &file){
 
 void firstPass8Distance(int **&ary){
     //for every pixel, get its distance form the edge
-    for(int i = 1; i < numRows+1; i++){
+    for(int i = 1; i < numRows + 1; i++){
         for(int j = 0; j < numCols + 1; j++){
             //if p(i,j) is an object pixel, 
             //set it equal to minimum neighbor +1
@@ -215,7 +215,7 @@ void skeletonExtraction(){
 
 void computeLocalMaxima(int **&zAry, int **&skelAry){
     for(int i = 1; i < numRows+1;i++){
-        for(int j =1; j < numCols+1; j++){
+        for(int j = 1; j < numCols+1; j++){
             if(zAry[i][j] != 0){
                 loadNeighbors(i,j);
                 int max = -1;
@@ -230,8 +230,8 @@ void computeLocalMaxima(int **&zAry, int **&skelAry){
 }//computeLocalMaxima
 
 void extractLocalMaxima(int **&skelAry, ofstream &file){
-    for(int i = 0; i < numRows+2;i++){
-        for(int j =0; j < numCols+2; j++){
+    for(int i = 0; i < numRows + 2; i++){
+        for(int j = 0; j < numCols + 2; j++){
             if(skelAry[i][j] != 0){
                 file << i << " " << j << " " << zeroFramedAry[i][j] << endl;
             }//if
@@ -265,10 +265,43 @@ void loadFromSkeleton(ifstream &file, int **ary){
     }//while
 }//loadFromSkeleton
 
+void firstPassExtraction(int **&ary){
+    for(int i = 1; i < numRows + 1; i++){
+        for(int j = 1; j < numCols + 1; j++){
+            if(ary[i][j] == 0){
+                loadNeighbors(i,j);
+                int max = -10;
+                for(int k = 0; k < 9;k++){
+                    if(max < neighborhood[k]) max = neighborhood[k];
+                }//for
+                
+                if(max - 1 > 0) ary[i][j] = max - 1;
+                else ary[i][j] = 0;
+            }//if
+        }//for
+    }//for
+}//firstPassExtraction
+
+void secondPassExtraction(int **&ary){
+    for(int i = numRows; i > 0; i--){
+        for(int j = numCols; j > 0; j--){
+            //if(ary[i][j] == 0){
+                loadNeighbors(i,j);
+                int max = -10;
+                for(int k = 0; k < 9;k++){
+                    if(max < neighborhood[k]) max = neighborhood[k];
+                }//for
+                
+                if(max - 1 > ary[i][j]) ary[i][j] = max - 1;
+            //}//if
+        }//for
+    }//for
+}//secondPassExtraction
+
 void prettyPrint(int **&ary, ofstream &file, bool includeZero){
     // if Ary(i,j) == 0 print 2 blank space, else print Ary(i,j) use 2 digit space 
     for(int i = 0; i < numRows + 2; i++){
-        for(int j=0; j < numCols+2; j++){
+        for(int j = 0; j < numCols + 2; j++){
             if(ary[i][j] == 0) file << "  ";
             else file << ary[i][j] << " ";
         }//for
