@@ -35,6 +35,7 @@ void firstPassExtraction(int **&ary);
 void secondPassExtraction(int **&ary);
 void sendToFile(int **&ary, ofstream &file);
 void prettyPrint(int **&ary, ofstream &file, bool includeZero);
+void ary2file(int **&ary, ofstream &file);
 
 
 int main(int argc, char *argv[]){
@@ -87,9 +88,11 @@ int main(int argc, char *argv[]){
     skeletonExpansion(skstream, zeroFramedAry);
 
     //step 10: Output numRows, numCols, newMinVal, newMaxVal to deCompressFile
+    decompressionFile << numRows << " " << numCols << " " << newMinVal << " " << newMaxVal << endl;
 
     //Step 11: ary2File(ZeroFramedAry, deCompressFile) 
             // dump ZeroFramedAry to deCompressFile
+    ary2file(zeroFramedAry, decompressionFile);
   
     //Step 12: close all files
     inFile1.close();
@@ -190,6 +193,8 @@ void firstPass8Distance(int **&ary){
 }//firstPass8Distance
 
 void secondPass8Distance(int **&ary){
+    newMinVal = 1000000;
+    newMaxVal = -10;
     for(int i = numRows; i > 0; i--){
         for(int j = numCols; j > 0; j--){
             //if p(i,j) is an object pixel, 
@@ -201,6 +206,10 @@ void secondPass8Distance(int **&ary){
                     if(neighborhood[k]+1 < min) min = neighborhood[k]+1;
                 }//for
             zeroFramedAry[i][j] = min;
+
+            //keep track of new min and max values
+            if(zeroFramedAry[i][j] > newMaxVal) newMaxVal = zeroFramedAry[i][j];
+            if(zeroFramedAry[i][j] < newMinVal) newMinVal = zeroFramedAry[i][j];
             }//if nonzero
         }//for rows
     }//for cols
@@ -293,6 +302,10 @@ void secondPassExtraction(int **&ary){
                 }//for
                 
                 if(max - 1 > ary[i][j]) ary[i][j] = max - 1;
+                
+                //keep track of new min and max values
+                if(zeroFramedAry[i][j] > newMaxVal) newMaxVal = zeroFramedAry[i][j];
+                if(zeroFramedAry[i][j] < newMinVal) newMinVal = zeroFramedAry[i][j];
             //}//if
         }//for
     }//for
@@ -308,3 +321,15 @@ void prettyPrint(int **&ary, ofstream &file, bool includeZero){
         file << endl;
     }//for
 }//prettyprint
+
+void ary2file(int **&ary, ofstream &file){
+    for(int i = 1; i < numRows + 1; i++){
+        for(int j = 1; j < numCols + 1; j++){
+            if(ary[i][j] != 0){
+                file << 1 << " ";
+            }
+            else file << 0 << " ";
+        }//for
+        file << endl;
+    }//for
+}//ary2file
