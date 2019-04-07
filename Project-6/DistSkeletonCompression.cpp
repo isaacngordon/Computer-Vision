@@ -16,13 +16,15 @@ int numRows, numCols, minVal, maxVal, newMinVal, newMaxVal;
 
 int** zeroFramedAry;
 int** skeletonAry;
+int* neighborhood;
 
 int setup(int argc, char *argv[]);
 void setZero(int **&ary);
 void loadImage();
-int compute8Distance(...);
-void firstPass8Distance();
-void secondPass8Distance();
+void loadNeighbors(int i, int j);
+void compute8Distance(int **&ary, ofstream &file);
+void firstPass8Distance(int **&ary);
+void secondPass8Distance(int **&ary);
 void skeletonExtraction();
 int isMaxima(int i, int j);
 int computeLocalMaxima(int i, int j);
@@ -69,15 +71,8 @@ int main(int argc, char *argv[]){
     //Step 6: loadImage (inFile, ZeroFramedAry) // begins at ZeroFramedAry(1,1)
     loadImage();
 
-    for(int i = 0; i < numRows + 2; i++){
-        for(int j = 0; j < numCols + 2; j++){
-            cout << zeroFramedAry[i][j];
-        }//for
-        cout << endl;
-    }//for
-
-
     //Step 7: compute8Distance(ZeroFramedAry, outFile1)  // Perform distance transform
+    compute8Distance(zeroFramedAry, outFile1);
 
     //Step 8: skeletonExtraction (ZeroFramedAry, skeletonAry, skeletonFile, outFile1)  
             // perform compression
@@ -145,3 +140,69 @@ void loadImage(){
         }//for
     }//for
 }//loadImage
+
+void loadNeighbors(int i, int j){
+    neighborhood = new int[9];
+    int index = 0;
+    for(int r = i-1; r <= i+1; r++){
+        for(int c = j-1; c <= j+1; c++){
+            neighborhood[index] = zeroFramedAry[r][c];
+            index++;
+        }//for
+    }//for
+}//loaadNeighbors
+
+void compute8Distance(int **&ary, ofstream &file){
+    firstPass8Distance(ary);
+    outFile1 << "1st PASS DISTANCE TRANSFORM\n\n";
+    prettyPrint(ary, file, false);
+    secondPass8Distance(ary);
+    outFile1 << "2nd PASS DISTANCE TRANSFORM\n\n";
+    prettyPrint(ary, file, false);
+}//compute8Distance
+
+void firstPass8Distance(int **&ary){
+    //for every pixel, get its distance form the edge
+    for(int i = 1; i < numRows+1; i++){
+        for(int j = 0; j < numCols + 1; j++){
+            //if p(i,j) is an object pixel, 
+            //set it equal to minimum neighbor +1
+            if(zeroFramedAry[i][j] !=0){
+                loadNeighbors(i,j);
+                int min = 1000000;
+                for(int k = 0; k < 4; k++){
+                    if(neighborhood[k] < min) min = neighborhood[k];
+                }//for
+                zeroFramedAry[i][j] = min + 1;
+            }//if
+        }//for cols
+    }//for rows
+}//firstPass8Distance
+
+void secondPass8Distance(int **&ary){
+    for(int i = numRows; i > 0; i--){
+        for(int j = numCols; j > 0; j--){
+            //if p(i,j) is an object pixel, 
+            //set it equal to minimum neighbor +1 or itself, whichever is smaller
+            if(zeroFramedAry[i][j] != 0){
+                loadNeighbors(i,j);
+                int min = zeroFramedAry[i][j];
+                for(int k = 5; k < 9; k++){
+                    if(neighborhood[k]+1 < min) min = neighborhood[k]+1;
+                }//for
+            zeroFramedAry[i][j] = min;
+            }//if nonzero
+        }//for rows
+    }//for cols
+}//secondPass8Distance
+
+void prettyPrint(int **&ary, ofstream &file, bool includeZero){
+    // if Ary(i,j) == 0 print 2 blank space, else print Ary(i,j) use 2 digit space 
+    for(int i = 0; i < numRows + 2; i++){
+        for(int j=0; j < numCols+2; j++){
+            if(ary[i][j] == 0) file << "  ";
+            else file << ary[i][j] << " ";
+        }//for
+        file << endl;
+    }//for
+}//prettyprint
