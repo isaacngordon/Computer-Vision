@@ -2,6 +2,7 @@
 #include <fstream>
 #include <cmath>
 #include <string>
+#include <cstring>
 
 using namespace std;
 
@@ -17,7 +18,7 @@ int** zeroFramedAry;
 int** skeletonAry;
 
 int setup(int argc, char *argv[]);
-void setZero(int** ary);
+void setZero(int **&ary);
 void loadImage();
 int compute8Distance(...);
 void firstPass8Distance();
@@ -29,8 +30,8 @@ void extractLocalMaxima(ofstream &file);
 void skeletonExpansion();
 void firstPassExtraction();
 void secondPassExtraction();
-void sendToFile(int** ary, ofstream &file);
-void prettyPrint(int** ary, ofstream &file, bool includeZero);
+void sendToFile(int **&ary, ofstream &file);
+void prettyPrint(int **&ary, ofstream &file, bool includeZero);
 
 
 int main(int argc, char *argv[]){
@@ -47,7 +48,9 @@ int main(int argc, char *argv[]){
     skeletonFileName = sk + "_skeleton.txt";
 
     //Step 2: skeletonFile <- open (skeletonFileName)
-    skeletonFile.open(skeletonFileName);
+    char skCharAry[skeletonFileName.length() + 1];
+    strcpy(skCharAry, skeletonFileName.c_str()); 
+    skeletonFile.open(skCharAry);
 
     //Step 3: deCompressedFileName <- argv[1] + “_deCompressed”
     string decompressionFileName;
@@ -56,12 +59,23 @@ int main(int argc, char *argv[]){
     decompressionFileName = de + "_decompressed.txt";
 
     //Step 4: deCompressFile <- open (deCompressedFileName)
-    decompressionFile.open(decompressionFileName);
+    char deCharAry[decompressionFileName.length() + 1];
+    strcpy(deCharAry, decompressionFileName.c_str()); 
+    decompressionFile.open(deCharAry);
 
-    //step 5: setZero (ZeroFramedAry) 
-	        //setZero (skeletonAry)
+    //step 5: setZero (ZeroFramedAry), setZero (skeletonAry)
+    /*  THIS STEP WAS TAKEN CARE OF IN SETUP  */
 
     //Step 6: loadImage (inFile, ZeroFramedAry) // begins at ZeroFramedAry(1,1)
+    loadImage();
+
+    for(int i = 0; i < numRows + 2; i++){
+        for(int j = 0; j < numCols + 2; j++){
+            cout << zeroFramedAry[i][j];
+        }//for
+        cout << endl;
+    }//for
+
 
     //Step 7: compute8Distance(ZeroFramedAry, outFile1)  // Perform distance transform
 
@@ -114,7 +128,7 @@ int setup(int argc, char *argv[]){
     return 0;
 }//setup
 
-void setZero(int** ary){
+void setZero(int **&ary){
     ary = new int*[numRows + 2];
     for(int i = 0; i < numRows + 2; i++){
         ary[i] = new int[numCols + 2];
@@ -123,3 +137,11 @@ void setZero(int** ary){
         }//for
     }//for
 }//setZero
+
+void loadImage(){
+    for(int i = 0; i < numRows; i++){
+        for(int j = 0; j < numCols; j++){
+            inFile1 >> zeroFramedAry[i+1][j+1];
+        }//for
+    }//for
+}//loadImage
