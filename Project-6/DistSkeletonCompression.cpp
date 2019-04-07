@@ -27,8 +27,8 @@ void firstPass8Distance(int **&ary);
 void secondPass8Distance(int **&ary);
 void skeletonExtraction();
 int isMaxima(int i, int j);
-int computeLocalMaxima(int i, int j);
-void extractLocalMaxima(ofstream &file);
+void computeLocalMaxima(int **&zAry, int **&skelAry);
+void extractLocalMaxima(int **&skelAry, ofstream &file);
 void skeletonExpansion();
 void firstPassExtraction();
 void secondPassExtraction();
@@ -76,6 +76,7 @@ int main(int argc, char *argv[]){
 
     //Step 8: skeletonExtraction (ZeroFramedAry, skeletonAry, skeletonFile, outFile1)  
             // perform compression
+    skeletonExtraction();
 
     //Step 9: skeletonExpansion(ZeroFramedAry, skeletonFile, outFile2)  
 		// perform decompression
@@ -195,6 +196,39 @@ void secondPass8Distance(int **&ary){
         }//for rows
     }//for cols
 }//secondPass8Distance
+
+void skeletonExtraction(){
+    computeLocalMaxima(zeroFramedAry, skeletonAry);
+    outFile1 <<"\nLOCAL MAXIMA\n\n";
+    prettyPrint(skeletonAry, outFile1, false);
+    extractLocalMaxima(skeletonAry, skeletonFile);
+}//skeletonExtraction
+
+void computeLocalMaxima(int **&zAry, int **&skelAry){
+    for(int i = 1; i < numRows+1;i++){
+        for(int j =1; j < numCols+1; j++){
+            if(zAry[i][j] !=0){
+                loadNeighbors(i,j);
+                int max = -1;
+                for(int k = 0; k < 9; k++){
+                    if(neighborhood[k]> max) max = neighborhood[k];
+                    if(zAry[i][j] == max) skelAry[i][j]=zAry[i][j];
+                    else skelAry[i][j] = 0;
+                }//for
+            }//if
+        }//for cols
+    }//for rows
+}//computeLocalMaxima
+
+void extractLocalMaxima(int **&skelAry, ofstream &file){
+    for(int i = 0; i < numRows+2;i++){
+        for(int j =0; j < numCols+2; j++){
+            if(skelAry[i][j] != 0){
+                file << i << " " << j << " " << zeroFramedAry[i][j] << endl;
+            }//if
+        }//for cols
+    }//for rows
+}//extractLocalMaxima
 
 void prettyPrint(int **&ary, ofstream &file, bool includeZero){
     // if Ary(i,j) == 0 print 2 blank space, else print Ary(i,j) use 2 digit space 
