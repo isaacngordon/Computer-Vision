@@ -29,7 +29,8 @@ void skeletonExtraction();
 int isMaxima(int i, int j);
 void computeLocalMaxima(int **&zAry, int **&skelAry);
 void extractLocalMaxima(int **&skelAry, ofstream &file);
-void skeletonExpansion();
+void skeletonExpansion(ifstream &skelfile, int **&ary);
+void loadFromSkeleton(ifstream &skelfile, int **&ary);
 void firstPassExtraction();
 void secondPassExtraction();
 void sendToFile(int **&ary, ofstream &file);
@@ -77,14 +78,18 @@ int main(int argc, char *argv[]){
     //Step 8: skeletonExtraction (ZeroFramedAry, skeletonAry, skeletonFile, outFile1)  
             // perform compression
     skeletonExtraction();
+    skeletonFile.close();
 
     //Step 9: skeletonExpansion(ZeroFramedAry, skeletonFile, outFile2)  
 		// perform decompression
+    ifstream skstream;
+    skstream.open(skCharAry);
+    skeletonExpansion(skstream, zeroFramedAry);
 
     //step 10: Output numRows, numCols, newMinVal, newMaxVal to deCompressFile
 
     //Step 11: ary2File(ZeroFramedAry, deCompressFile) 
-    //// dump ZeroFramedAry to deCompressFile
+            // dump ZeroFramedAry to deCompressFile
   
     //Step 12: close all files
     inFile1.close();
@@ -113,11 +118,13 @@ int setup(int argc, char *argv[]){
     outFile1.open(argv[2]);
 	outFile2.open(argv[3]);
 
+    //set header vals
     inFile1 >> numRows;
     inFile1 >> numCols;
     inFile1 >> minVal;
     inFile1 >> maxVal;
 
+    //allocate arys
     setZero(zeroFramedAry);
     setZero(skeletonAry);
 
@@ -151,7 +158,7 @@ void loadNeighbors(int i, int j){
             index++;
         }//for
     }//for
-}//loaadNeighbors
+}//loadNeighbors
 
 void compute8Distance(int **&ary, ofstream &file){
     firstPass8Distance(ary);
@@ -170,6 +177,8 @@ void firstPass8Distance(int **&ary){
             //set it equal to minimum neighbor +1
             if(zeroFramedAry[i][j] !=0){
                 loadNeighbors(i,j);
+
+                //set 
                 int min = 1000000;
                 for(int k = 0; k < 4; k++){
                     if(neighborhood[k] < min) min = neighborhood[k];
@@ -207,7 +216,7 @@ void skeletonExtraction(){
 void computeLocalMaxima(int **&zAry, int **&skelAry){
     for(int i = 1; i < numRows+1;i++){
         for(int j =1; j < numCols+1; j++){
-            if(zAry[i][j] !=0){
+            if(zAry[i][j] != 0){
                 loadNeighbors(i,j);
                 int max = -1;
                 for(int k = 0; k < 9; k++){
@@ -229,6 +238,32 @@ void extractLocalMaxima(int **&skelAry, ofstream &file){
         }//for cols
     }//for rows
 }//extractLocalMaxima
+
+void skeletonExpansion(ifstream &skelfile,int **&ary){
+    //set and load
+    setZero(ary);
+    loadFromSkeleton(skelfile, ary);
+
+    //first pass
+    firstPassExtraction(ary);
+    outFile2 << "1st PASS EXPANSION\n\n";
+    prettyPrint(ary, outFile2, false);
+
+    //second pass
+    secondPassExtraction(ary);
+    outFile2 << "2nd PASS EXPANSION\n\n";
+    prettyPrint(ary, outFile2, false);
+}//skeletonExpansion
+
+void loadFromSkeleton(ifstream &file, int **ary){
+    int r, c, dist;
+    while(!file.eof()){
+         file >> r;
+         file >> c;
+         file >> dist;
+         ary[r][c] = dist;
+    }//while
+}//loadFromSkeleton
 
 void prettyPrint(int **&ary, ofstream &file, bool includeZero){
     // if Ary(i,j) == 0 print 2 blank space, else print Ary(i,j) use 2 digit space 
