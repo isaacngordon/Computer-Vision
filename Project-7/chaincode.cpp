@@ -49,6 +49,7 @@ class Image{
             for(int i = 0; i < numRows; i++){
                 for(int j = 0; j < numCols; j++){
                     imgFileInputStream >> ary[i+1][j+1];
+                    if(ary[i+1][j+1] != 0) label = ary[i+1][j+1];
                 }//for
             }//for
         }//loadImage
@@ -70,19 +71,25 @@ class ChainCode{
             col = c;
         }//contructor
 
+        //overoad operators
         bool operator!=(const Point& p){
             if(row == p.row )
                 if(col == p.col)
                     return false;
             return true;
-        }
-
+        }//not-equal
         bool operator==(const Point& p){
             if(row == p.row )
                 if(col == p.col)
                     return true;
             return false;
-        }
+        }//is-equal
+        Point operator=(const Point& p){
+            int r = p.row;
+            int c = p.col;
+            Point a = Point(r,c);
+            return a;
+        }//copy constructor
     };//Point Class
 
     friend class Image;
@@ -91,7 +98,7 @@ class ChainCode{
     Point startP, currentP, nextP;
     Point neighborhood[8];
     int lastQ, chainDir;
-    int compassTable[8] = {6, 0, 0, 2, 2, 4, 4, 6};
+    int compassTable[8];
     Image image;
 
     //Functions
@@ -113,6 +120,7 @@ class ChainCode{
                     chainCodeFile << i << " ";
                     chainCodeFile << j << " ";
                     chainCodeFile << ary[i][j] << " "; 
+                    image.setLabel(ary[i][j]);
 
                     currentP = Point(i,j);
                     lastQ = 4;
@@ -121,6 +129,7 @@ class ChainCode{
             }//for cols
             if(lastQ) break;
         }//for rows
+
         do {
             //STEP 3
             lastQ = (lastQ + 1) % 8;
@@ -138,7 +147,7 @@ class ChainCode{
             lastQ = compassTable[chainDir];
         } while(currentP != startP);
         //STEP 7
-
+        cout << "The total number of boundry pixels: " << image.numBoundryPts << endl;
     }//getChainCode
     int findNextP(int lastD, Point currentPoint){
         int cd;
@@ -173,30 +182,75 @@ class ChainCode{
             }//for
         }//for
     }//loadNeighborsCoord
-    void reconstructObject(ifstream &chainCodeFile, ofstream &deCompressFile, int **&imgAry){
-        int cRows, cCols, cMinVal, cMaxVal, clabel, tmpLabel;
+    void reconstructObject(ifstream &chainCodeFile, ofstream &boundaryFile ,ofstream &deCompressFile, int **&imgAry){
+        int cRows, cCols, cMinVal, cMaxVal;
+        int clabel, tmpLabel, startRow, startCol;
+        
+        //get cahin code header info
         chainCodeFile >> cRows;
         chainCodeFile >> cCols;
         chainCodeFile >> cMinVal;
         chainCodeFile >> cMaxVal;
+        chainCodeFile >> startRow;
+        chainCodeFile >> startCol;
         chainCodeFile >> clabel;
 
+        //set start values
         tmpLabel = clabel + 2;
+        startP = Point(startRow, startCol);
 
+        //dynamically allocate imgAry
+        imgAry = new int*[cRows];
+        for(int i = 0; i < cRows; i++){
+            imgAry[i] = new int[cCols];
+            for(int j = 0; j < cCols; j++){
+                imgAry[i][j] = 0;
+            }//for
+        }//for
+
+        //output headers to files
         deCompressFile << cRows << " ";
         deCompressFile << cCols << " ";
         deCompressFile << cMinVal << " ";
-        deCompressFile << cMaxVal << " ";
+        deCompressFile << cMaxVal << endl;
 
-        constructBoundary(chainCodeFile, imgAry, tmpLabel);
+        boundaryFile << cRows << " ";
+        boundaryFile << cCols << " ";
+        boundaryFile << cMinVal << " ";
+        boundaryFile << cMaxVal << endl;
+
+        //construct boundary and output boundary to boundaryFile
+        constructBoundary(chainCodeFile, boundaryFile, imgAry, tmpLabel);
+        printImageAryToFile(imgAry, cRows, cCols, boundaryFile);
+
+        //fill interior of the object then print the image to decompressedFile
         fillInterior(imgAry);
+        printImageAryToFile(imgAry, cRows, cCols, deCompressFile);
     }//reconstructObject
-    void constructBoundary(ifstream &chainCodeFile, int **&imgAry, int tmplabel){
-
+    void constructBoundary(ifstream &chainCodeFile, ofstream &boundaryFile, int **&imgAry, int tmplabel){
+        imgAry[startP.row][startP.col] = tmplabel;
+        currentP = startP;
+        
+        //go through the chain add contruct the boundary
+        do{
+            chainCodeFile >> chainDir;
+            loadNeighborsCoord(currentP);
+            nextP = neighborhood[chainDir];
+            imgAry[nextP.row][nextP.col] = tmplabel;
+            currentP = nextP;
+        }while(currentP != startP);
     }//constructBoundary
     void fillInterior(int **&imgAry){
 
     }//fillInterior
+    void printImageAryToFile(int **&imgAry, int numRows, int numCols, ofstream &outputFileStream){
+            for(int i = 0; i < numRows; i++){
+                for(int j = 0; j < numCols; j++){
+                    outputFileStream << imgAry[i][j] << " ";
+                }//for
+                outputFileStream << endl;
+            }//for
+        }//printImageToFile
     
 };//ChainCode Class
 
@@ -213,31 +267,29 @@ Image::Image(ifstream &imgFileInputStream){
     imgFileInputStream >> maxVal;
 
     setZeroFrame(zeroFramedAry);
-
-    imgAry = new int*[numRows];
-    for(int i = 0; i < numRows; i++){
-        imgAry[i] = new int[numCols];
-        for(int j = 0; j < numCols; j++){
-            imgAry[i][j] = 0;
-        }//for
-    }//for
-
     loadImage(imgFileInputStream, zeroFramedAry);
 }//Image::Image(...)
 
 ChainCode::ChainCode(){
-
+    compassTable[0] = 6;
+    compassTable[1] = 0;
+    compassTable[2] = 0;
+    compassTable[3] = 2;
+    compassTable[4] = 2;
+    compassTable[5] = 4;
+    compassTable[6] = 4;
+    compassTable[7] = 6;
 }//ChainCode::ChainCode()
 
 
 /* Data  */
 ifstream inFile;
-ofstream chainCodeFile, decompressFile;
+ofstream chainCodeFile, decompressFile, boundaryFile;
 Image image;
 ChainCode chaincode;
 
-/* Function Headers */
 
+/* Function Headers */
 
 /* Program Begin */
 int main(int argc, char *argv[]){
@@ -247,6 +299,8 @@ int main(int argc, char *argv[]){
         cout << "Correct syntax is >> ./chainCode <inputFile>\n where inputFile is a binary image containgina single object and a header.\n";
         return -1;
     }
+    string f = argv[1];
+    string mainFileName = f.substr(0,f.find(".txt",0));
 
     //Step 0 (encomppases step 3)
     inFile.open(argv[1]);
@@ -254,10 +308,7 @@ int main(int argc, char *argv[]){
     chaincode = ChainCode();
 
     //Step 1
-    string chainCodeFileName;
-    chainCodeFileName = argv[1];
-    string cc = chainCodeFileName.substr(0,chainCodeFileName.find(".txt",0));
-    chainCodeFileName = cc + "_chaincode.txt";
+    string chainCodeFileName = mainFileName + "_chaincode.txt";
 
     //Step 2
     chainCodeFile.open(chainCodeFileName);
@@ -273,21 +324,22 @@ int main(int argc, char *argv[]){
     inChaincodeFile.open(chainCodeFileName);
 
     //Step 4
-    string decompressedFileName;
-    decompressedFileName = argv[1];
-    string de = decompressedFileName.substr(0,decompressedFileName.find(".txt",0));
-    decompressedFileName = de + "_chainCodeDecompressed.txt";
+    string decompressedFileName = mainFileName + "_chainCodeDecompressed.txt";
+    string boundaryFileName = mainFileName + "_Boundary.txt";
 
     //Step 5
     decompressFile.open(decompressedFileName);
+    boundaryFile.open(boundaryFileName);
+
 
     //Step 6
-    chaincode.reconstructObject(inChaincodeFile, decompressFile, image.imgAry);
+    chaincode.reconstructObject(inChaincodeFile, boundaryFile, decompressFile, image.imgAry);
 
     //Step 7
     inFile.close();
     chainCodeFile.close();
     decompressFile.close();
+    boundaryFile.close();
 
     return 0;
 }//main
