@@ -43,7 +43,7 @@ class Image{
                     ary[i][j] = 0;
                 }//for
             }//for
-        }
+        }//setZeroFrame
         void loadImage(ifstream &imgFileInputStream, int **&ary){
             setZeroFrame(ary);
             for(int i = 0; i < numRows; i++){
@@ -51,8 +51,8 @@ class Image{
                     imgFileInputStream >> ary[i+1][j+1];
                 }//for
             }//for
-        }
-};
+        }//loadImage
+};//Image Class
 
 class ChainCode{
     public:
@@ -62,47 +62,120 @@ class ChainCode{
         public: int row; int col;
         void setRow(int i){row = i;}
         void setCol(int i){col = i;}
-        Point();
+        int getRow(){return row;}
+        int getCol(){return col;}
+        Point(){};
         Point(int r, int c){
             row = r;
             col = c;
-        }
-    };
+        }//contructor
+    };//Point Class
+
+    friend class Image;
 
     //data structs
     Point startP, currentP, nextP;
     Point neighborhood[8];
     int lastQ, chainDir;
     int compassTable[8];
+    Image image;
 
     //Functions
     ChainCode();
-    void getChainCode(int **&ZeroFramedAry, ofstream &chainCodeFile){
+    void getChainCode(Image img, ofstream &chainCodeFile){
+        //STEP 0
+        image = img;
+        chainCodeFile << image.numRows << " ";
+        chainCodeFile << image.numCols << " ";
+        chainCodeFile << image.minVal << " ";
+        chainCodeFile << image.maxVal << " " << endl;
+        image.setNumBoundryPts(0);
 
-    }
-    int findNextP(int lastQ, Point neighborCoord){
+        //STEP 1 and 2
+        int** ary = image.zeroFramedAry;
+        for(int i = 1; i < image.numRows + 1; i++){
+            for(int j = 1; j < image.numCols; j++){
+                if(ary[i][j] > 0){
+                    chainCodeFile << i << " ";
+                    chainCodeFile << j << " ";
+                    chainCodeFile << ary[i][j] << " "; 
 
-    }
+                    currentP = Point(i,j);
+                    lastQ = 4;
+                    break;
+                }
+            }//for cols
+            if(lastQ) break;
+        }//for rows
+        do {
+            //STEP 3
+            lastQ = (lastQ + 1) % 8;
+
+            //STEP 4
+            chainDir = findNextP(lastQ, currentP);
+            image.setNumBoundryPts(image.numBoundryPts + 1);
+
+            //STEP 5
+            chainCodeFile << chainDir << " ";
+
+            //STEP 6
+            nextP = neighborhood[chainDir];
+            currentP = nextP;                       //i feel that this and the previous line should be swapped
+            lastQ = compassTable[chainDir];
+        } while(currentP != startP);
+        //STEP 7
+
+    }//getChainCode
+    int findNextP(int lastD, Point currentPoint){
+        int cd;
+        loadNeighborsCoord(currentPoint);
+        int index = lastD;
+        bool found = false;
+        int iRow = neighborhood[index].row;
+        int jCol = neighborhood[index].col;
+
+        while(!found){
+            if(image.zeroFramedAry[iRow][jCol] == image.label){
+                cd = index;
+                found = true;
+            }
+            index = (index+1) % 8;
+        }//while
+        
+        return cd;
+    }//findNextP
     void loadNeighborsCoord(Point currentP){
+        int r = currentP.getRow();
+        int c = currentP.getCol();
+        int index = 0;
 
-    }
-    void reconstructObject(ofstream &chainCodeFile, ofstream &deCompressFile, int **&imgAry){
-
-    }
+        for(int i = r-1; i <= r+1; i++){
+            for(int j = c-1; j <= c+1; j++){
+                if(i==r && j==c) continue;
+                else{
+                    Point p = Point(i,j);
+                    neighborhood[index] = p;
+                }//else
+            }//for
+        }//for
+    }//loadNeighborsCoord
+    void reconstructObject(ifstream &chainCodeFile, ofstream &deCompressFile, int **&imgAry){
+        
+    }//reconstructObject
     void constructBoundary(ofstream &chainCodeFile, int **&imgAry, int tmplabel){
 
-    }
+    }//constructBoundary
     void fillInterior(int **&imgAry){
 
-    }
+    }//fillInterior
     
-};
+};//ChainCode Class
 
 /* Class Constructors */
 
 Image::Image(){
 
-}
+}//Image::Image()
 
 Image::Image(ifstream &imgFileInputStream){
     imgFileInputStream >> numRows;
@@ -121,11 +194,11 @@ Image::Image(ifstream &imgFileInputStream){
     }//for
 
     loadImage(imgFileInputStream, zeroFramedAry);
-}
+}//Image::Image(...)
 
 ChainCode::ChainCode(){
 
-}
+}//ChainCode::ChainCode()
 
 
 /* Data  */
@@ -161,7 +234,14 @@ int main(int argc, char *argv[]){
     chainCodeFile.open(chainCodeFileName);
 
     //Step 3
-    chaincode.getChainCode(image.zeroFramedAry, chainCodeFile);
+    chaincode.getChainCode(image, chainCodeFile);
+
+    //Step
+    chainCodeFile.close();
+
+    //Step
+    ifstream inChaincodeFile;
+    inChaincodeFile.open(chainCodeFileName);
 
     //Step 4
     string decompressedFileName;
@@ -173,7 +253,7 @@ int main(int argc, char *argv[]){
     decompressFile.open(decompressedFileName);
 
     //Step 6
-    chaincode.reconstructObject(chainCodeFile, decompressFile, image.imgAry);
+    chaincode.reconstructObject(inChaincodeFile, decompressFile, image.imgAry);
 
     //Step 7
     inFile.close();
