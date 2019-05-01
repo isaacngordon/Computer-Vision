@@ -69,6 +69,20 @@ class ChainCode{
             row = r;
             col = c;
         }//contructor
+
+        bool operator!=(const Point& p){
+            if(row == p.row )
+                if(col == p.col)
+                    return false;
+            return true;
+        }
+
+        bool operator==(const Point& p){
+            if(row == p.row )
+                if(col == p.col)
+                    return true;
+            return false;
+        }
     };//Point Class
 
     friend class Image;
@@ -77,7 +91,7 @@ class ChainCode{
     Point startP, currentP, nextP;
     Point neighborhood[8];
     int lastQ, chainDir;
-    int compassTable[8];
+    int compassTable[8] = {6, 0, 0, 2, 2, 4, 4, 6};
     Image image;
 
     //Functions
@@ -160,9 +174,24 @@ class ChainCode{
         }//for
     }//loadNeighborsCoord
     void reconstructObject(ifstream &chainCodeFile, ofstream &deCompressFile, int **&imgAry){
-        
+        int cRows, cCols, cMinVal, cMaxVal, clabel, tmpLabel;
+        chainCodeFile >> cRows;
+        chainCodeFile >> cCols;
+        chainCodeFile >> cMinVal;
+        chainCodeFile >> cMaxVal;
+        chainCodeFile >> clabel;
+
+        tmpLabel = clabel + 2;
+
+        deCompressFile << cRows << " ";
+        deCompressFile << cCols << " ";
+        deCompressFile << cMinVal << " ";
+        deCompressFile << cMaxVal << " ";
+
+        constructBoundary(chainCodeFile, imgAry, tmpLabel);
+        fillInterior(imgAry);
     }//reconstructObject
-    void constructBoundary(ofstream &chainCodeFile, int **&imgAry, int tmplabel){
+    void constructBoundary(ifstream &chainCodeFile, int **&imgAry, int tmplabel){
 
     }//constructBoundary
     void fillInterior(int **&imgAry){
