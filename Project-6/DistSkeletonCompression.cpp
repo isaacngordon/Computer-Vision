@@ -219,6 +219,7 @@ void skeletonExtraction(){
     computeLocalMaxima(zeroFramedAry, skeletonAry);
     outFile1 <<"\nLOCAL MAXIMA\n\n";
     prettyPrint(skeletonAry, outFile1, false);
+    skeletonFile << numRows << " " << numCols << " " << minVal << " " << maxVal << endl;
     extractLocalMaxima(skeletonAry, skeletonFile);
 }//skeletonExtraction
 
@@ -249,6 +250,11 @@ void extractLocalMaxima(int **&skelAry, ofstream &file){
 }//extractLocalMaxima
 
 void skeletonExpansion(ifstream &skelfile,int **&ary){
+
+    skelfile >> numRows;
+    skelfile >> numCols;
+    skelfile >> minVal;
+    skelfile >> maxVal;
     //set and load
     setZero(ary);
     loadFromSkeleton(skelfile, ary);
