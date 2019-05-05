@@ -330,10 +330,10 @@ void pass3(){
 void drawboxes(){
     //Step 1 and 2
     for(int i = 1; i < newLabel+1; i++){
-        int minRow = ccProperties[i].minRow + 1; // need to add 1 for frame compensation
-        int minCol = ccProperties[i].minCol + 1; // need to add 1 for frame compensation
-        int maxRow = ccProperties[i].maxRow + 1; // need to add 1 for frame compensation
-        int maxCol = ccProperties[i].maxCol + 1; // need to add 1 for frame compensation
+        int minRow = ccProperties[i].minRow ;// + 1; // need to add 1 for frame compensation
+        int minCol = ccProperties[i].minCol ;// + 1; // need to add 1 for frame compensation
+        int maxRow = ccProperties[i].maxRow ;// + 1; // need to add 1 for frame compensation
+        int maxCol = ccProperties[i].maxCol ;// + 1; // need to add 1 for frame compensation
         int label = ccProperties[i].label;
 
         //Step 3
@@ -371,7 +371,7 @@ void printCCproperty(ofstream &file){
         file << p.label << endl;
         file << p.numpixels << endl;
         file << p.minRow << ", " << p.minCol << endl;
-        file << p.maxRow << "," << p.maxCol << endl;
+        file << p.maxRow << ", " << p.maxCol << endl;
         file << endl;
     }//for
 }//printCCproperty
@@ -414,14 +414,14 @@ void pp(ofstream &file, bool withFrame){
 void printEQAry(ofstream &file){
     file << "EQ Table: " << endl;
     for(int i = 0; i < maxNumCC; i ++){
-        file << i << "|";
+        file << i << "\t|";
     }//for
 
     file << endl;
 
     for(int i = 0; i < maxNumCC; i ++){
-        file << eqAry[i] << "|";
+        file << eqAry[i] << "\t|";
     }//for
 
-    file << "   newLabel: " << newLabel << endl << endl;
+    file << endl <<"newLabel: " << newLabel << endl << endl;
 }//printEQAry
