@@ -67,6 +67,7 @@ class ImagePP{
     public: 
         //DATA STRUCTS
         int numRows, numCols, minVal, maxVal;
+        int heightPP, widthPP;
         int** imgAry;
         Box imgBox;
         int thrVal;
@@ -92,7 +93,7 @@ class ImagePP{
         Box computeBBox(){
             Box b;
             int* ary;
-            int top, bottom, left, right, width, height;
+            int top, bottom, left, right, width;
 
             //find top, bottom, left, right
             top = numRows;
@@ -111,19 +112,19 @@ class ImagePP{
             }//for
 
             //compute dims
-            height = bottom - top;
-            width = right - left;
+            heightPP = bottom - top + 2;
+            widthPP = right - left + 2;
 
             //allocate HPP
-            ary = new int[height+2];
-            for(int i = 0; i < height+2; i++){
+            ary = new int[heightPP];
+            for(int i = 0; i < heightPP; i++){
                 ary[i] = 0;
             }//for
             hpp = ary;
 
             //allocate VPP
-            ary = new int[width+2];
-            for(int j = 0; j < width+2; j++){
+            ary = new int[widthPP];
+            for(int j = 0; j < widthPP; j++){
                 ary[j] = 0;
             }//for
             vpp = ary;
@@ -132,17 +133,41 @@ class ImagePP{
             b = Box(top, left, bottom, right);
             return b;
         }
-        void computeHPP(int **&imageArray, Box *imageBox, int* horpp){
+        void computeHPP(int **&imageArray, Box imageBox, int* horpp){
             //TODO: count up the pixels on each row within bbox
+            int top = imageBox.minR;
+            int bottom = imageBox.maxR;
+
+            for(int i = top; i <= bottom; i++){
+                for(int j = 0; j < numCols; j++){
+                    if(imageArray[i][j] > 0) horpp[i-top+1]++;
+                }
+            }
+
         }
-        void computeVPP(int **&imageArray, Box *imageBox, int* verpp){
+        void computeVPP(int **&imageArray, Box imageBox, int* verpp){
             //TODO: count up the pixels on each col within bbxo
+            int left = imageBox.minC;
+            int right = imageBox.maxC;
+
+            for(int i = 0; i < numRows; i++){
+                for(int j = left; j <= right; j++){
+                    if(imageArray[i][j] > 0) verpp[j-left+1]++;
+                }
+            }
         }
         void applyThreshold(int* pp, int thr, int* binPP){
             //TODO: within pp, change all vals less than thr to 0, else 1
         }
-        void printPP(int* pp, ofstream &file){
-            //TODO: print PP to the file
+        void printPP(int* pp, ofstream &file, int start, int size){
+            
+            //print indices and vals
+            file << "==========================\n";
+            file << "INDEX(Row) | VALUE\t |\n";
+            file << "==========================\n";
+            for(int k = 0; k < size+1; k++)
+                file << k << "(" << k + start << ")\t   | "<< pp[k] << "\t\t |\n";
+            file << endl;
         }
         void morphClosing(int* ppMorph, int* structElement){
             //TODO: get funtions from morph project
@@ -219,14 +244,14 @@ int main(int argc, char *argv[]){
     image.setThreshVal(threshholdValue);
 
     //Step 3
-    image.computeHPP(image.imgAry, &image.imgBox, image.hpp);
-    image.computeHPP(image.imgAry, &image.imgBox, image.vpp);
+    image.computeHPP(image.imgAry, image.imgBox, image.hpp);
+    image.computeHPP(image.imgAry, image.imgBox, image.vpp);
 
     //Step 4
     outFile << "HPP:\n";
-    image.printPP(image.hpp, outFile);
+    image.printPP(image.hpp, outFile, image.imgBox.minR, image.heightPP);
     outFile << "VPP:\n";
-    image.printPP(image.vpp, outFile);
+    image.printPP(image.vpp, outFile, image.imgBox.minC, image.widthPP);
 
     //Step 5
     image.applyThreshold(image.hpp, 3, image.hppBin);
@@ -234,9 +259,9 @@ int main(int argc, char *argv[]){
 
     //Step 6
     outFile << "HPP Binary:\n";
-    image.printPP(image.hppBin, outFile);
+    image.printPP(image.hppBin, outFile, image.imgBox.minR, image.heightPP);
     outFile << "VPP Binary:\n";
-    image.printPP(image.vppBin, outFile);
+    image.printPP(image.vppBin, outFile, image.imgBox.minC, image.widthPP);
 
     //Step 7
     int structElem[3] = {1,1,1};
