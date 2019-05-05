@@ -13,7 +13,7 @@ class ImagePP{
         public:
             int minR, minC, maxR, maxC;
 
-            Box();
+            Box(){ }
             Box(int minRv, int minCv, int maxRv, int maxCv){
                 minR = minRv;
                 minC = minCv;
@@ -55,7 +55,8 @@ class ImagePP{
         
         void insertNode(BoxNode* newBoxNode){
             //TODO: fix this shit
-            back.setNextBoxNode(newBoxNode);
+            BoxNode b = *back;
+            b.setNextBoxNode(newBoxNode);
             back = newBoxNode;
         }
         void printBoxQueue(ofstream &outputFile){
@@ -63,68 +64,84 @@ class ImagePP{
         }
     };
 
-public: 
-    //DATA STRUCTS
-    int numRows, numCols, minval, maxVal;
-    int** imgAry;
-    Box imgBox;
-    int thrVal;
-    int* hpp; int* vpp; int* hppBin; int* vppBin; int* hppMorph; int* vppMorph;
-    int hppRuns, vppRuns;
+    public: 
+        //DATA STRUCTS
+        int numRows, numCols, minVal, maxVal;
+        int** imgAry;
+        Box imgBox;
+        int thrVal;
+        int* hpp; int* vpp; int* hppBin; int* vppBin; int* hppMorph; int* vppMorph;
+        int hppRuns, vppRuns;
 
-    ImagePP();
-    ImagePP(ifstream &inputFile);
-    void loadImage(ifstream &inputFile){
-        //TODO: load image into imgAry
-    }
-    void setThreshVal(int thr){
-        thrVal = thr;
-    }
-    Box computeBBox(){
-        //TODO: allocate vpp hpp
-        //TODO: compute bounding box of document
-    }
-    void computeHPP(int **&imageArray, Box *imageBox, int* horpp){
-        //TODO: count up the pixels on each row within bbox
-    }
-    void computeVPP(int **&imageArray, Box *imageBox, int* verpp){
-        //TODO: count up the pixels on each col within bbxo
-    }
-    void applyThreshold(int* pp, int thr, int* binPP){
-        //TODO: within pp, change all vals less than thr to 0, else 1
-    }
-    void printPP(int* pp, ofstream &file){
-        //TODO: print PP to the file
-    }
-    void morphClosing(int* ppMorph, int* structElement){
-        //TODO: get funtions from morph project
-    }
-    int* computeReadingDirection(){
-        /*
-            if HPPruns >= factor * VPPruns  // try factor 3 
-			  return hppVmorph
-		  else if VPPruns >= factor * HPPruns  
-			 	return vppMorph
-		  else : 
-                return empty array reference
-        */
-    }
-    void findLineBoxes(int* pp){
-        //TODO: Base on the reading direction, you are to compute the text-line bounding
-        
-        //TODO: add box to QUEUE
-    }
-    void printQueue(ofstream &file){
-        //TODO: for every box in the queue, print
-        /*
-            box type
-			minRow minCol maxRow 	maxCol
-        */
-    }
+        ImagePP(){}
+        ImagePP(ifstream &inputFile);
+        void loadImage(ifstream &inputFile){
+            int** ary;
+            ary = new int*[numRows];
+            for(int i = 0; i < numRows; i++){
+                ary[i] = new int[numCols];
+                for(int j = 0; j < numCols; j++){
+                    inputFile >> ary[i][j];
+                }//for
+            }//for
+            imgAry = ary;
+        }
+        void setThreshVal(int thr){
+            thrVal = thr;
+        }
+        Box computeBBox(){
+            Box b;
+            //TODO: allocate vpp hpp
+            //TODO: compute bounding box of document
+            return b;
+        }
+        void computeHPP(int **&imageArray, Box *imageBox, int* horpp){
+            //TODO: count up the pixels on each row within bbox
+        }
+        void computeVPP(int **&imageArray, Box *imageBox, int* verpp){
+            //TODO: count up the pixels on each col within bbxo
+        }
+        void applyThreshold(int* pp, int thr, int* binPP){
+            //TODO: within pp, change all vals less than thr to 0, else 1
+        }
+        void printPP(int* pp, ofstream &file){
+            //TODO: print PP to the file
+        }
+        void morphClosing(int* ppMorph, int* structElement){
+            //TODO: get funtions from morph project
+        }
+        int* computeReadingDirection(){
+            int* readDir;
+            /*
+                if HPPruns >= factor * VPPruns  // try factor 3 
+                    return hppVmorph
+                else if VPPruns >= factor * HPPruns  
+                    return vppMorph
+                else : 
+                    return empty array reference
+            */
+            return readDir;
+        }
+        void findLineBoxes(int* pp){
+            //TODO: Base on the reading direction, you are to compute the text-line bounding
+            
+            //TODO: add box to QUEUE
+        }
+        void printQueue(ofstream &file){
+            //TODO: for every box in the queue, print
+            /*
+                box type
+                minRow minCol maxRow 	maxCol
+            */
+        }
 };
 
 ImagePP::ImagePP(ifstream &inputFile){
-    //TODO:
+    inputFile >> numRows;
+    inputFile >> numCols;
+    inputFile >> minVal;
+    inputFile >> maxVal;
+    loadImage(inputFile);
 }
 
 
