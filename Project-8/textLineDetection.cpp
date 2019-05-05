@@ -91,8 +91,45 @@ class ImagePP{
         }
         Box computeBBox(){
             Box b;
-            //TODO: allocate vpp hpp
-            //TODO: compute bounding box of document
+            int* ary;
+            int top, bottom, left, right, width, height;
+
+            //find top, bottom, left, right
+            top = numRows;
+            bottom = 0;
+            left = numCols;
+            right = 0;
+            for(int i = 0; i < numRows; i++){
+                for(int j = 0; j < numCols; j++){
+                    if(imgAry[i][j] > 0){
+                        if(i < top) top = i;
+                        if(i > bottom) bottom = i;
+                        if(j < left) left = j;
+                        if(j > right) right = j;
+                    }
+                }//for
+            }//for
+
+            //compute dims
+            height = bottom - top;
+            width = right - left;
+
+            //allocate HPP
+            ary = new int[height+2];
+            for(int i = 0; i < height+2; i++){
+                ary[i] = 0;
+            }//for
+            hpp = ary;
+
+            //allocate VPP
+            ary = new int[width+2];
+            for(int j = 0; j < width+2; j++){
+                ary[j] = 0;
+            }//for
+            vpp = ary;
+
+            //compute bounding box of document
+            b = Box(top, left, bottom, right);
             return b;
         }
         void computeHPP(int **&imageArray, Box *imageBox, int* horpp){
@@ -142,6 +179,7 @@ ImagePP::ImagePP(ifstream &inputFile){
     inputFile >> minVal;
     inputFile >> maxVal;
     loadImage(inputFile);
+    imgBox = computeBBox();
 }
 
 
