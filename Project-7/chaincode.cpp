@@ -1,6 +1,7 @@
 #include<iostream>
 #include<fstream>
 #include<string>
+#include<cstring>
 #include<cmath>
 
 using namespace std;
@@ -44,6 +45,7 @@ class Image{
                 }//for
             }//for
         }//setZeroFrame
+
         void loadImage(ifstream &imgFileInputStream, int **&ary){
             setZeroFrame(ary);
             for(int i = 0; i < numRows; i++){
@@ -53,6 +55,43 @@ class Image{
                 }//for
             }//for
         }//loadImage
+
+        // Image operator=(const Image& im){
+        //     // int** ary;
+        //     // int** zeroAry;
+
+        //     // Image img;
+        //     // img.setLabel(im.label);
+        //     // img.setNumRows(im.numRows);
+        //     // img.setNumCols(im.numCols);
+        //     // img.setMinVal(im.minVal);
+        //     // img.setMaxVal(im.maxVal);
+        //     // img.setNumBoundryPts(im.numBoundryPts);
+
+        //     // zeroAry = new int*[im.numRows + 2];
+        //     // int** imz = im.zeroFramedAry;
+        //     // for(int a = 0; a < im.numRows + 2; a++){
+        //     //     zeroAry[a] = new int[im.numCols + 2];
+        //     //     for(int b = 0; b < im.numCols + 2; b++){
+        //     //         zeroAry[a][b] = imz[a][b];
+        //     //     }//for
+        //     // }//for
+            
+        //     // ary = new int*[im.numRows];
+        //     // for(int a = 0; a < im.numRows; a++){
+        //     //     ary[a] = new int[im.numCols];
+        //     //     for(int b = 0; b < im.numCols; b++){
+        //     //         ary[a][b] = im.imgAry[a][b];
+        //     //     }//for
+        //     // }//for
+            
+            
+
+        //     // img.imgAry = ary;
+        //     // img.zeroFramedAry = zeroAry;
+
+        //     return im; 
+        // }
 };//Image Class
 
 class ChainCode{
@@ -67,8 +106,8 @@ class ChainCode{
         int getCol(){return col;}
         Point(){};
         Point(int r, int c){
-            row = r;
-            col = c;
+            this->row = r;
+            this->col = c;
         }//contructor
 
         //overoad operators
@@ -84,12 +123,12 @@ class ChainCode{
                     return true;
             return false;
         }//is-equal
-        Point operator=(const Point& p){
-            int r = p.row;
-            int c = p.col;
-            Point a = Point(r,c);
-            return a;
-        }//copy constructor
+        // Point operator=(const Point& p){
+        //     int r = p.row;
+        //     int c = p.col;
+        //     Point a(r,c);
+        //     return a;
+        // }//copy constructor
     };//Point Class
 
     friend class Image;
@@ -102,7 +141,16 @@ class ChainCode{
     Image image;
 
     //Functions
-    ChainCode();
+    ChainCode(){
+        compassTable[0] = 6;
+        compassTable[1] = 0;
+        compassTable[2] = 0;
+        compassTable[3] = 2;
+        compassTable[4] = 2;
+        compassTable[5] = 4;
+        compassTable[6] = 4;
+        compassTable[7] = 6;
+    }
     void getChainCode(Image img, ofstream &chainCodeFile){
         //STEP 0
         image = img;
@@ -114,25 +162,30 @@ class ChainCode{
 
         //STEP 1 and 2
         int** ary = image.zeroFramedAry;
+        bool found = false;
         for(int i = 1; i < image.numRows + 1; i++){
             for(int j = 1; j < image.numCols; j++){
                 if(ary[i][j] > 0){
-                    chainCodeFile << i << " ";
-                    chainCodeFile << j << " ";
+                    chainCodeFile << (i-1) << " ";
+                    chainCodeFile << (j-1) << " ";
                     chainCodeFile << ary[i][j] << " "; 
                     image.setLabel(ary[i][j]);
 
-                    currentP = Point(i,j);
+                    Point kkk(i,j);
+                    currentP = kkk;
+                    startP = kkk;
+                     
                     lastQ = 4;
+                    found = true;
                     break;
                 }
             }//for cols
-            if(lastQ) break;
+            if(found) break;
         }//for rows
-
+lastQ = (lastQ + 1) % 8;
         do {
             //STEP 3
-            lastQ = (lastQ + 1) % 8;
+            
 
             //STEP 4
             chainDir = findNextP(lastQ, currentP);
@@ -145,43 +198,54 @@ class ChainCode{
             nextP = neighborhood[chainDir];
             currentP = nextP;                       //i feel that this and the previous line should be swapped
             lastQ = compassTable[chainDir];
-        } while(currentP != startP);
+        } while(currentP.row != startP.row || currentP.col != startP.col);
+
         //STEP 7
         cout << "The total number of boundry pixels: " << image.numBoundryPts << endl;
     }//getChainCode
+
     int findNextP(int lastD, Point currentPoint){
         int cd;
         loadNeighborsCoord(currentPoint);
         int index = lastD;
         bool found = false;
-        int iRow = neighborhood[index].row;
-        int jCol = neighborhood[index].col;
-
-        while(!found){
-            if(image.zeroFramedAry[iRow][jCol] == image.label){
+        
+        int** ary = image.zeroFramedAry;
+        int loopCounter = 0;
+        while(!found && loopCounter < 20){
+            int iRow = (neighborhood[index]).row;
+            int jCol = (neighborhood[index]).col;
+            if(ary[iRow][jCol] == image.label){
                 cd = index;
                 found = true;
             }
             index = (index+1) % 8;
+            loopCounter++;
         }//while
-        
+        if(loopCounter >= 20){
+            cout << "crazy loop at 225" << endl;
+        }
         return cd;
     }//findNextP
+
     void loadNeighborsCoord(Point currentP){
         int r = currentP.getRow();
         int c = currentP.getCol();
         int index = 0;
+        int nexti[8] = {3,2,1,4,0,5,6,7};
 
         for(int i = r-1; i <= r+1; i++){
             for(int j = c-1; j <= c+1; j++){
                 if(i==r && j==c) continue;
                 else{
-                    Point p = Point(i,j);
-                    neighborhood[index] = p;
+                    Point p(i,j);
+                    neighborhood[nexti[index]] = p;
+                    index++;
                 }//else
             }//for
         }//for
     }//loadNeighborsCoord
+
     void reconstructObject(ifstream &chainCodeFile, ofstream &boundaryFile ,ofstream &deCompressFile, int **&imgAry){
         int cRows, cCols, cMinVal, cMaxVal;
         int clabel, tmpLabel, startRow, startCol;
@@ -198,6 +262,7 @@ class ChainCode{
         //set start values
         tmpLabel = clabel + 2;
         startP = Point(startRow, startCol);
+        cout << "startP for decom is P(" << startRow << ", " << startCol << ")\n";
 
         //dynamically allocate imgAry
         imgAry = new int*[cRows];
@@ -224,9 +289,10 @@ class ChainCode{
         printImageAryToFile(imgAry, cRows, cCols, boundaryFile);
 
         //fill interior of the object then print the image to decompressedFile
-        fillInterior(imgAry);
+        fillInterior(imgAry, cRows, cCols, tmpLabel);
         printImageAryToFile(imgAry, cRows, cCols, deCompressFile);
     }//reconstructObject
+
     void constructBoundary(ifstream &chainCodeFile, ofstream &boundaryFile, int **&imgAry, int tmplabel){
         imgAry[startP.row][startP.col] = tmplabel;
         currentP = startP;
@@ -240,18 +306,131 @@ class ChainCode{
             currentP = nextP;
         }while(currentP != startP);
     }//constructBoundary
-    void fillInterior(int **&imgAry){
 
-    }//fillInterior
-    void printImageAryToFile(int **&imgAry, int numRows, int numCols, ofstream &outputFileStream){
+    void fillInterior(int **imgAry, int numRows, int numCols, int tmpLabel){
+        //row by row, LR->TB increment all 0 pixels in btwn boundry pixels
+        for(int i = 0; i < numRows; i++){
+            int indexFirstB = -1;
+            int indexLastB = -1;
+            int numBoundOnLine = 0;
+            for(int j = 0; j < numCols; j++){
+                if(imgAry[i][j] == tmpLabel){
+                    numBoundOnLine++;
+                    if(indexFirstB == -1) indexFirstB = j;
+                    else if( j > indexLastB) indexLastB = j;
+                    continue;
+                }//if boundary px
+            }//for cols
+            for(int j = 0; j < numCols; j++){
+                if(j > indexFirstB && j < indexLastB) imgAry[i][j]++;
+            }
+        }//for rows
+        printImageAryToConsole(imgAry, numRows, numCols);
+
+        //col by col, TB->LR increment all 0 pixels in btwn boundry pixels
+        for(int j = 0; j < numCols; j++){
+            int indexFirstB = -1;
+            int indexLastB = -1;
             for(int i = 0; i < numRows; i++){
-                for(int j = 0; j < numCols; j++){
-                    outputFileStream << imgAry[i][j] << " ";
-                }//for
-                outputFileStream << endl;
+                if(imgAry[i][j] >= tmpLabel){
+                    if(indexFirstB == -1) indexFirstB = i;
+                    else if( i > indexLastB) indexLastB = i;
+                    continue;
+                }//if boundary px
+            }//for cols
+            for(int i = 0; i < numRows; i++){
+                if(i > indexFirstB && i < indexLastB) imgAry[i][j]++;
+            }
+        }//for rows
+        printImageAryToConsole(imgAry, numRows, numCols);
+
+        //if a px was icremented twice, then it is part of the interior
+        for(int i = 0; i < numRows; i++){
+            bool aok = false;
+            for(int j = 0; j < numCols; j++){
+                if(imgAry[i][j] >= 3){
+                    if(j+1 < numCols){
+                        if(imgAry[i][j+1] < 3){
+                            if(!aok) aok = true;
+                            else aok = false;
+                        }
+                        else aok = false;
+                    }
+                }
+                else if(imgAry[i][j] == 2){
+                    if(aok){
+                        if(j-1 > 0){
+                            if(imgAry[i][j-1] < 2){
+                                imgAry[i][j] = 0;
+                                aok = false;
+                            } 
+                                
+                        }
+                        if(j+1 < numCols){
+                            if(imgAry[i][j+1] < 2){
+                                imgAry[i][j] = 0;
+                                aok = false;
+                            }
+                        }
+                        if(i+1 < numCols){
+                            if(imgAry[i+1][j] < 2){ 
+                                imgAry[i][j] = 0;
+                                aok = false;
+                            }
+                        }
+                        if(i-1 > 0){
+                            if(imgAry[i-1][j] < 2){
+                                imgAry[i][j] = 0;
+                                aok = false;
+                            }
+                        }
+                        //all good?
+                        if(imgAry[i][j] == 2) 
+                            imgAry[i][j] = tmpLabel;
+                    }
+                    else imgAry[i][j] = 0;
+                }
+                else{
+                    imgAry[i][j] = 0;
+                    aok = false;
+                }
+            }//for cols
+        }//for rows
+        printImageAryToConsole(imgAry, numRows, numCols);
+
+        for(int i = 0; i < numRows; i++){
+            for(int j = 0; j < numCols; j++){
+                if(imgAry[i][j] > 2) imgAry[i][j] = tmpLabel - 2;
+            }
+        }
+        printImageAryToConsole(imgAry, numRows, numCols);
+    }//fillInterior
+
+    void printImageAryToFile(int **&imgAry, int numRows, int numCols, ofstream &outputFileStream){
+        for(int i = 0; i < numRows; i++){
+            for(int j = 0; j < numCols; j++){
+                outputFileStream << imgAry[i][j] << " ";
             }//for
-        }//printImageToFile
-    
+            outputFileStream << endl;
+        }//for
+    }//printImageToFile
+
+    void printImageAryToConsole(int **&imgAry, int numRows, int numCols){
+        for(int i = 0; i < numRows; i++){
+            for(int j = 0; j < numCols; j++){
+                cout << imgAry[i][j] << " ";
+            }//for
+            cout << endl;
+        }//for
+        cout << endl;
+    }//printImageToFile
+
+        //OPERATORS
+        ChainCode operator=(const ChainCode& c){
+            ChainCode d;
+            return d;
+        }
+
 };//ChainCode Class
 
 /* Class Constructors */
@@ -268,18 +447,17 @@ Image::Image(ifstream &imgFileInputStream){
 
     setZeroFrame(zeroFramedAry);
     loadImage(imgFileInputStream, zeroFramedAry);
-}//Image::Image(...)
 
-ChainCode::ChainCode(){
-    compassTable[0] = 6;
-    compassTable[1] = 0;
-    compassTable[2] = 0;
-    compassTable[3] = 2;
-    compassTable[4] = 2;
-    compassTable[5] = 4;
-    compassTable[6] = 4;
-    compassTable[7] = 6;
-}//ChainCode::ChainCode()
+    int** ary;
+    // ary = new int*[numRows];
+    // for(int i = 0; i < numRows; i++){
+    //     for(int j = 0; j < numCols; j++){
+    //         ary[i][j] = 0;
+    //     }//for
+    // }//for
+    imgAry = ary;
+
+}//Image::Image(...)
 
 
 /* Data  */
@@ -309,9 +487,11 @@ int main(int argc, char *argv[]){
 
     //Step 1
     string chainCodeFileName = mainFileName + "_chaincode.txt";
+    char ccCharAry[chainCodeFileName.length() + 1];
+    strcpy(ccCharAry, chainCodeFileName.c_str());
 
     //Step 2
-    chainCodeFile.open(chainCodeFileName);
+    chainCodeFile.open(ccCharAry);
 
     //Step 3
     chaincode.getChainCode(image, chainCodeFile);
@@ -321,15 +501,19 @@ int main(int argc, char *argv[]){
 
     //Step
     ifstream inChaincodeFile;
-    inChaincodeFile.open(chainCodeFileName);
+    inChaincodeFile.open(ccCharAry);
 
     //Step 4
     string decompressedFileName = mainFileName + "_chainCodeDecompressed.txt";
     string boundaryFileName = mainFileName + "_Boundary.txt";
+    char deCharAry[decompressedFileName.length() + 1];
+    char boundCharAry[boundaryFileName.length() + 1];
+    strcpy(deCharAry, decompressedFileName.c_str());
+    strcpy(boundCharAry, boundaryFileName.c_str());
 
     //Step 5
-    decompressFile.open(decompressedFileName);
-    boundaryFile.open(boundaryFileName);
+    decompressFile.open(deCharAry);
+    boundaryFile.open(boundCharAry);
 
 
     //Step 6
