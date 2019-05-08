@@ -13,56 +13,165 @@ class ImagePP{
         public:
             int minR, minC, maxR, maxC;
 
-            Box(){ }
+            Box(){ 
+                minR = 0;
+                minC = 0;
+                maxR = 0;
+                maxC = 0;
+            }
             Box(int minRv, int minCv, int maxRv, int maxCv){
                 minR = minRv;
                 minC = minCv;
                 maxR = maxRv;
                 maxC = maxCv;
+            }//Box
+            void printBoxInfo(){
+                cout << this << " " << minR << " " << minC << " " << maxR << " " << maxC << endl;
+            }//printBoxInfo
+            void operator=(const Box& b){
+            /*
+                cout << "operator= box called\n";
+                
+                int lr, lc, br, bc;
+                lr = b.minR;
+                lc = b.minC;
+                br = b.maxR;
+                bc = b.maxC;
+                return Box(lr, lc, br, bc);
+            */
+                
+                minR = b.minR;
+                minC = b.minC;
+                maxR = b.maxR;
+                maxC = b.maxC;
             }
-            void printBoxInfo(ofstream &outputFile){
-                //TODO: 
-            }
-    };
+    };//Box
 
     class BoxNode{
         public: 
             int boxType; // 1=docBox, 2=paragraph, 3=textline
             Box bbox;
-            BoxNode* nextBox;
+            BoxNode *nextBox;
 
-            BoxNode();
-            BoxNode(int type, Box box, BoxNode* nextB){
+            BoxNode(){}
+            BoxNode(int lr, int lc, int br, int bc){
+                setType(0);
+                setBox(new Box(lr, lc, br, lc));
+            }
+            BoxNode(int type, Box *box, BoxNode *nextB){
                 setType(type);
                 setBox(box);
                 setNextBoxNode(nextB);
-            }
+            }//BoxNode
+            BoxNode(int type, Box *box){
+                setType(type);
+                setBox(box);
+            }//BoxNode
             void setType(int type){
                 boxType = type;
             }
-            void setBox(Box box){
-                bbox = box;
+            void setBox(Box *box){
+                bbox = *box;
             }
             void setNextBoxNode(BoxNode *nextB){
                 nextBox = nextB;
             }
-    };
+            void printBoxDetails(ofstream &file){
+                cout <<" printing box details to file... " << this << endl;
+                file << boxType << endl;
+                file << bbox.minR << " " << bbox.minC << " ";
+                file << bbox.maxR << " " << bbox.maxC << "\n";
+            }
+            void printToConsole(){
+                cout << "Print to boxnode to console called\n";
+                cout << boxType << endl;
+                bbox.printBoxInfo();
+            }
+            void determineType(bool horizontal){
+                int s,f;
+                //if horizontal
+                if(horizontal){
+                    s = bbox.minR;
+                    f = bbox.maxR;
+                }
+                //if vertical
+                else{
+                    s = bbox.minC;
+                    f = bbox.maxC;
+                }
+
+                //textLine
+                if(s == f){
+                    boxType = 1;
+                } 
+                //paragraph
+                else{
+                    boxType = 2;
+                }
+            }
+            BoxNode* getNextNode(){
+                return nextBox;
+            }//
+            BoxNode operator=(const BoxNode& b){
+                BoxNode n;
+                Box k = b.bbox;
+                n.setBox(&k);
+                n.setType(b.boxType);
+                n.setNextBoxNode(b.nextBox);
+                return n;
+            }//
+    };//BoxNode
 
     class BoxQueue{
-        BoxNode* front;
-        BoxNode* back;
+        BoxNode front; //will be dummy
+        BoxNode back;
+        int size;
 
-        
-        void insertNode(BoxNode* newBoxNode){
+    public:
+        BoxQueue(){
+            BoxNode n;
+            n.setType(-1);
+            front = n;
+            back = n;
+            size = 0;
+        }//BoxQueue
+        BoxQueue(BoxNode *n){
+            front = *n;
+            front.setNextBoxNode(&back);
+            size = 1;
+        }
+        void insertNode(BoxNode *newBoxNode){
             //TODO: fix this shit
-            BoxNode b = *back;
-            b.setNextBoxNode(newBoxNode);
-            back = newBoxNode;
-        }
+            back.setNextBoxNode(newBoxNode);
+            back = *newBoxNode;
+            size++;
+        }//insertNode
         void printBoxQueue(ofstream &outputFile){
-            //TODO: 
-        }
-    };
+            cout << "**print box queue called**\n";
+            BoxNode n;
+            n = front; int count = 0;
+            for(int i = 0; i < size; i++){
+                cout << ">> file print round: " << ++count << endl;
+                cout << ">>> n address: " << &n << endl;
+                n.printToConsole();
+                n.printBoxDetails(outputFile);
+                n = *n.nextBox;
+            }
+            
+            // int count = 0;
+            // BoxNode p;
+            // BoxNode *pk;
+            // p = front;
+            // do{
+            //     p.printToConsole();
+            //     p.printBoxDetails(outputFile);
+            //     outputFile << endl;
+            //     cout << endl;
+            //     pk = p.nextBox;
+            //     p = *pk;
+            // } while(&p != back.nextBox);
+        }//printBoxQueue
+    };//BoxQueue
 
     public: 
         //DATA STRUCTS
@@ -70,6 +179,7 @@ class ImagePP{
         int heightPP, widthPP;
         int** imgAry;
         Box imgBox;
+        BoxQueue boxQueue;
         int thrVal;
         int* hpp; int* vpp; int* hppBin; int* vppBin; int* hppMorph; int* vppMorph;
         int hppRuns, vppRuns;
@@ -86,13 +196,15 @@ class ImagePP{
                 }//for
             }//for
             imgAry = ary;
-        }
+        }//loadImage
         void setThreshVal(int thr){
             thrVal = thr;
-        }
+        }//setThreshVal
         Box computeBBox(){
             Box b;
-            int* ary;
+            int* aryA;
+            int* aryB;
+            int* aryC;
             int top, bottom, left, right, width;
 
             //find top, bottom, left, right
@@ -116,64 +228,138 @@ class ImagePP{
             widthPP = right - left + 2;
 
             //allocate HPP
-            ary = new int[heightPP];
+            aryA = new int[heightPP];
+            aryB = new int[heightPP];
+            aryC = new int[heightPP];
             for(int i = 0; i < heightPP; i++){
-                ary[i] = 0;
+                aryA[i] = 0;
+                aryB[i] = 0;
+                aryC[i] = 0;
             }//for
-            hpp = ary;
+            hpp = aryA;
+            hppBin = aryB;
+            hppMorph = aryC;
 
             //allocate VPP
-            ary = new int[widthPP];
+            aryA = new int[widthPP];
+            aryB = new int[widthPP];
+            aryC = new int[widthPP];
             for(int j = 0; j < widthPP; j++){
-                ary[j] = 0;
+                aryA[j] = 0;
+                aryB[j] = 0;
+                aryC[j] = 0;
             }//for
-            vpp = ary;
+            vpp = aryA;
+            vppBin = aryB;
+            vppMorph = aryC;
 
             //compute bounding box of document
             b = Box(top, left, bottom, right);
             return b;
-        }
-        void computeHPP(int **&imageArray, Box imageBox, int* horpp){
-            //TODO: count up the pixels on each row within bbox
+        }//computeBBox
+        void computeHPP(int **&imageArray, Box imageBox, int *horpp){
+            //count up the pixels on each row within bbox
             int top = imageBox.minR;
             int bottom = imageBox.maxR;
 
             for(int i = top; i <= bottom; i++){
                 for(int j = 0; j < numCols; j++){
                     if(imageArray[i][j] > 0) horpp[i-top+1]++;
-                }
-            }
-
-        }
-        void computeVPP(int **&imageArray, Box imageBox, int* verpp){
-            //TODO: count up the pixels on each col within bbxo
+                }//for
+            }//for
+        }//computeHPP
+        void computeVPP(int **&imageArray, Box imageBox, int *verpp){
+            //count up the pixels on each col within bbxo
             int left = imageBox.minC;
             int right = imageBox.maxC;
 
             for(int i = 0; i < numRows; i++){
                 for(int j = left; j <= right; j++){
                     if(imageArray[i][j] > 0) verpp[j-left+1]++;
-                }
+                }//for
+            }//for
+        }//computeVPP
+        void applyThreshold(){
+            //within pp, change all vals less than thr to 0, else 1
+            for(int x = 0; x < heightPP; x++){
+                if(hpp[x] >= thrVal) hppBin[x] = 1;
+                else hppBin[x] = 0;
             }
-        }
-        void applyThreshold(int* pp, int thr, int* binPP){
-            //TODO: within pp, change all vals less than thr to 0, else 1
-        }
-        void printPP(int* pp, ofstream &file, int start, int size){
-            
+            for(int x = 0; x < widthPP; x++){
+                if(vpp[x] >= thrVal) vppBin[x] = 1;
+                else vppBin[x] = 0;
+            }
+        }//applyThreshold
+        void printPP(int *pp, ofstream &file, int start, int size){
             //print indices and vals
             file << "==========================\n";
             file << "INDEX(Row) | VALUE\t |\n";
             file << "==========================\n";
-            for(int k = 0; k < size+1; k++)
-                file << k << "(" << k + start << ")\t   | "<< pp[k] << "\t\t |\n";
+            for(int k = 0; k < size+1; k++){
+                file << k << "(" << k + start << ")\t   | "<< pp[k] << "\t\t | ";
+                for(int b = 0; b < pp[k]; b++) file << "*";
+                file << endl;
+            }
             file << endl;
-        }
-        void morphClosing(int* ppMorph, int* structElement){
-            //TODO: get funtions from morph project
-        }
-        int* computeReadingDirection(){
+        }//printPP
+        void morphClosing(int *ppBin, int *ppMorph, int size, int *structElement, int origin, int structSize){
+            //Allocate m
+            int *m = new int[size+1];
+            for( int i = 0; i < size+1; i++){
+                int n = ppBin[i];
+                m[i] = n;
+            }//for
+
+            //DILATION
+            for(int d = 1; d < size+1; d++){
+                if(ppBin[d] == structElement[origin]){
+                    int x = d-1;
+                    for(int s = 0; s < structSize; s++){
+                        if(structElement[s] == 1)
+                            m[x + s] = 1;
+                            ppMorph[x + s] = 1;
+                    }//for
+                }//if
+            }//for
+
+            //EROSION
+            for(int d = 1; d < size+1; d++){
+                if(m[d] == 1){
+                    bool matches = true;
+                    int x = d-1;
+                    for(int s = 0; s < structSize; s++){
+                        if(!(m[x+s] == structElement[s])){
+                            matches = false;
+                        }
+                    }
+                if(!matches) ppMorph[d] = 0;
+                }
+            }//for
+        }//morphClosing
+        int* computeReadingDirection(int factor){
             int* readDir;
+            
+            //compute hppRuns
+            int prevVal = hppMorph[0];
+            hppRuns = 1;
+            for(int x = 1; x < heightPP+1; x++){
+                if(prevVal != hppMorph[x]){
+                    prevVal = hppMorph[x];
+                    hppRuns++;
+                }//if
+            }//for
+
+            //cimpute vppRuns
+            prevVal = vppMorph[0];
+            vppRuns = 1;
+            for(int x = 1; x < widthPP+1; x++){
+                if(prevVal != vppMorph[x]){
+                    prevVal = vppMorph[x];
+                    vppRuns++;
+                }//if
+            }//for
+
+            //find reading direction
             /*
                 if HPPruns >= factor * VPPruns  // try factor 3 
                     return hppVmorph
@@ -182,20 +368,83 @@ class ImagePP{
                 else : 
                     return empty array reference
             */
+            if(hppRuns >= factor * vppRuns) readDir = hppMorph;
+            else if(vppRuns >= factor * hppRuns) readDir = vppMorph;
+
             return readDir;
-        }
-        void findLineBoxes(int* pp){
-            //TODO: Base on the reading direction, you are to compute the text-line bounding
-            
-            //TODO: add box to QUEUE
-        }
+        }//computeReadingDirection
+
+        void findLineBoxes(int *pp, bool horizontal){
+            int rowOffset = imgBox.minR;
+            int colOffset = imgBox.minC;
+
+            //get correct size value
+            int size;
+            if(pp == hppMorph) size = heightPP;
+            else if (pp == vppMorph) size = widthPP;
+            else cout << "ERROR findLineBoxes(int *pp): pp is not hppMorph or vppMorph.\n";
+
+            //Compute the text-line bounding boxes
+            int start = 0;
+            int end = 0;
+            for(int x = 0; x < size+1; x++){
+                Box *tLineBox = new Box();
+                if(pp[x] == 0){
+                    //compute and append box
+                    if(!(end == x)){
+                        //make box and append to Queue
+                        int lr, lc, br, bc;
+                        
+                        if(pp == hppMorph){
+                            //find start and end of row
+                            int f = 999999;
+                            int l = -1;
+                            for(int k = colOffset; k < widthPP + colOffset; k++){
+                                if(imgAry[x + rowOffset][k] > 0){
+                                    if(k < f) f = k;
+                                    if(k > l) l = k;
+                                }//if
+                            }//for
+
+                            //set box values
+                            lr = start + rowOffset;
+                            br = end + rowOffset;
+                            lc = f;
+                            bc = l;
+                        } else{
+                            //find start and end of col
+                            int f = 999999;
+                            int l = -1;
+                            for(int k = rowOffset; k < heightPP + rowOffset; k++){
+                                if(imgAry[k][x + colOffset] > 0){
+                                    if(k < f) f = k;
+                                    if(k > l) l = k;
+                                }//if
+                            }//for
+
+                            //set box values
+                            lr = f;
+                            br = l;
+                            lc = start + colOffset;
+                            br = end + colOffset;
+                        }//else
+                        BoxNode node = BoxNode(lr, lc, br, bc);
+                        node.determineType(horizontal);
+                        boxQueue.insertNode(&node);
+                        node.bbox.printBoxInfo();
+                    }//addBox
+                    start = x+1;
+                    end = x+1;
+                }else if (pp[x] == 1){
+                    end = x;
+                }//else
+            }//for
+        }//findLineBoxes
+
         void printQueue(ofstream &file){
-            //TODO: for every box in the queue, print
-            /*
-                box type
-                minRow minCol maxRow 	maxCol
-            */
-        }
+            cout << "sending queue to file\n";
+            boxQueue.printBoxQueue(file);
+        }//printQueue
 };
 
 ImagePP::ImagePP(ifstream &inputFile){
@@ -205,7 +454,10 @@ ImagePP::ImagePP(ifstream &inputFile){
     inputFile >> maxVal;
     loadImage(inputFile);
     imgBox = computeBBox();
-}
+    BoxNode n = BoxNode(3, &imgBox);
+    BoxNode *np = &n;
+    boxQueue.insertNode(np);
+}//ImagePP constructor
 
 
 /* PROGRAM DATA STRUCTURES */
@@ -225,11 +477,12 @@ int main(int argc, char *argv[]){
     }
 
     //Step 0
-    threshholdValue = stoi(argv[2]);
-    if(threshholdValue < 1 || threshholdValue > 255){
-        cout << "<threshVal> must be an integer greater than 0, less than 256.\n";
-        return -1;
-    }
+    // threshholdValue = stoi(argv[2]);
+    // if(threshholdValue < 1 || threshholdValue > 255){
+    //     cout << "<threshVal> must be an integer greater than 0, less than 256.\n";
+    //     return -1;
+    // }
+    threshholdValue=3;
 
     inFile.open(argv[1]);
     string f = argv[1];
@@ -245,7 +498,7 @@ int main(int argc, char *argv[]){
 
     //Step 3
     image.computeHPP(image.imgAry, image.imgBox, image.hpp);
-    image.computeHPP(image.imgAry, image.imgBox, image.vpp);
+    image.computeVPP(image.imgAry, image.imgBox, image.vpp);
 
     //Step 4
     outFile << "HPP:\n";
@@ -254,8 +507,8 @@ int main(int argc, char *argv[]){
     image.printPP(image.vpp, outFile, image.imgBox.minC, image.widthPP);
 
     //Step 5
-    image.applyThreshold(image.hpp, 3, image.hppBin);
-    image.applyThreshold(image.vpp, 3, image.vppBin);
+    image.applyThreshold();
+    image.applyThreshold();
 
     //Step 6
     outFile << "HPP Binary:\n";
@@ -265,28 +518,38 @@ int main(int argc, char *argv[]){
 
     //Step 7
     int structElem[3] = {1,1,1};
-    image.morphClosing(image.hppMorph, structElem);
-    image.morphClosing(image.vppMorph, structElem);
+    image.morphClosing(image.hppBin, image.hppMorph, image.heightPP, structElem, 1, 3);
+    image.morphClosing(image.vppBin, image.vppMorph, image.widthPP, structElem, 1, 3);
+
+    outFile << "HPPMorph:\n";
+    image.printPP(image.hppMorph, outFile, image.imgBox.minR, image.heightPP);
+    outFile << "VPPMorph:\n";
+    image.printPP(image.vppMorph, outFile, image.imgBox.minC, image.widthPP);
 
     //Step 8
     int* readingPP;
-    readingPP = image.computeReadingDirection();
+    readingPP = image.computeReadingDirection(3);
 
     //Step 9
-    if(&readingPP == &image.hppMorph){
+    bool horizontal;
+    if(readingPP == image.hppMorph){
         outFile << "Reading Direction: HORIZONTAL\n";
+        horizontal = true;
     }
-    else if(&readingPP == &image.vppMorph){
+    else if(readingPP == image.vppMorph){
         outFile << "Reading Direction: VERTICAL\n";
+        horizontal = false;
     } else {
         cout << "Can not determine reading direction. Program will now exit.\n";
+        outFile << "Reading Direction: CANNOT BE DETERMINED\n";
         inFile.close();
         outFile.close();
         return -2;
     }//if else chain
 
     //Step 10
-    image.findLineBoxes(readingPP);
+    
+    image.findLineBoxes(readingPP, horizontal);
 
     //Step 11
     image.printQueue(outFile);
@@ -296,4 +559,4 @@ int main(int argc, char *argv[]){
     outFile.close();
 
     return 1;
-}
+}//main
